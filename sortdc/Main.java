@@ -5,6 +5,7 @@
 
 package sortdc;
 
+import java.util.ArrayList;
 import org.tartarus.snowball.*;
 
 /**
@@ -18,7 +19,7 @@ public class Main {
      */
     public static void main(String[] args) {
 
-        try {
+        /*try {
             Class stemClass = Class.forName("org.tartarus.snowball.ext.frenchStemmer");
             SnowballStemmer stemmer = (SnowballStemmer) stemClass.newInstance();
 
@@ -33,6 +34,17 @@ public class Main {
 
         }catch(Exception e){
             System.out.println(e.getMessage());
+        }*/
+
+        Tokenization tokenization = new Tokenization();
+        //tokenization.extract_words = false;
+        tokenization.extract_bigrams = true;
+        tokenization.extract_trigrams = true;
+
+        ArrayList test = tokenization.extract("Hello World =)");
+
+        for(int i = 0 ; i < test.size() ; i++){
+            System.out.println(test.get(i));
         }
     }
 
