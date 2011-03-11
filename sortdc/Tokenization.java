@@ -14,12 +14,12 @@ import java.util.Arrays;
  */
 public class Tokenization {
 
-    boolean extract_words = true;
-    boolean apply_stemming = false;
-    boolean extract_bigrams = false;
-    boolean extract_trigrams = false;
+    private boolean extract_words = true;
+    private boolean apply_stemming = false;
+    private boolean extract_bigrams = false;
+    private boolean extract_trigrams = false;
 
-    public void setExctractWords(boolean set){
+    public void setExtractWords(boolean set){
         this.extract_words = set;
     }
 
@@ -27,11 +27,11 @@ public class Tokenization {
         this.apply_stemming = set;
     }
 
-    public void setExctractBigrams(boolean set){
+    public void setExtractBigrams(boolean set){
         this.extract_bigrams = set;
     }
 
-    public void setExctractTrigrams(boolean set){
+    public void setExtractTrigrams(boolean set){
         this.extract_trigrams = set;
     }
 
@@ -43,43 +43,37 @@ public class Tokenization {
         if(this.extract_words)
             list.addAll(Arrays.asList(words));
 
-        if(this.extract_bigrams){
-            for(String word : words){
-                String[] bigrams = this.getBigrams(word);
-                list.addAll(Arrays.asList(bigrams));
-            }
-        }
+        if(this.extract_bigrams)
+            for(String word : words)
+                this.getBigrams(word, list);
 
-        if(this.extract_trigrams){
-            for(String word : words){
-                String[] trigrams = this.getTrigrams(word);
-                list.addAll(Arrays.asList(trigrams));
-            }
-        }
+        if(this.extract_trigrams)
+            for(String word : words)
+                this.getTrigrams(word, list);
 
         return list;
     }
 
     private String[] tokenize(String text){
-        return text.split(" ");
+        text = text.replaceAll("\n", " ");
+        String[] words = text.split(" ");
+
+        return words;
     }
 
-    private String[] getWordParts(String word, int parts_length){
+    private void getWordParts(String word, ArrayList list, int parts_length){
         int array_size = (word.length() - parts_length + 1 > 0 ? word.length() - parts_length + 1 : 0);
-        String[] word_parts = new String[array_size];
 
         for(int i = 0 ; i < array_size ; i++)
-            word_parts[i] = word.substring(i, i + parts_length);
-
-        return word_parts;
+            list.add(word.substring(i, i + parts_length));
     }
 
-    private String[] getBigrams(String word){
-        return getWordParts(word, 2);
+    private void getBigrams(String word, ArrayList list){
+        getWordParts(word, list, 2);
     }
 
-    private String[] getTrigrams(String word){
-        return getWordParts(word, 3);
+    private void getTrigrams(String word, ArrayList list){
+        getWordParts(word, list, 3);
     }
 
 }

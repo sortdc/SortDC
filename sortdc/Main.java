@@ -37,15 +37,14 @@ public class Main {
         }*/
 
         Tokenization tokenization = new Tokenization();
-        //tokenization.extract_words = false;
-        tokenization.extract_bigrams = true;
-        tokenization.extract_trigrams = true;
+        //tokenization.setExtractWords(false);
+        //tokenization.setExtractBigrams(true);
+        //tokenization.setExtractTrigrams(true);
 
-        ArrayList test = tokenization.extract("Hello World =)");
+        ArrayList test = tokenization.extract("Hello World =)\nbonjour!");
 
-        for(int i = 0 ; i < test.size() ; i++){
+        for(int i = 0 ; i < test.size() ; i++)
             System.out.println(test.get(i));
-        }
     }
 
 }
