@@ -38,6 +38,7 @@ public class Main {
         Tokenization tokenization = new Tokenization();
         //tokenization.setExtractWords(false);
         tokenization.setApplyStemming(true);
+        tokenization.setWordsMinLength(3);
         //tokenization.setExtractBigrams(true);
         //tokenization.setExtractTrigrams(true);
 

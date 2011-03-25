@@ -21,6 +21,7 @@ public class Tokenization {
     private boolean apply_stemming = false;
     private boolean extract_bigrams = false;
     private boolean extract_trigrams = false;
+    private int words_min_length = 2;
 
     public void setExtractWords(boolean set){
         this.extract_words = set;
@@ -38,8 +39,12 @@ public class Tokenization {
         this.extract_trigrams = set;
     }
 
-    public List extract(String text, String lang){
-        List list = new ArrayList();
+    public void setWordsMinLength(int length){
+        this.words_min_length = length;
+    }
+
+    public List<String> extract(String text, String lang){
+        List<String> list = new ArrayList();
 
         String[] words = this.tokenize(text);
 
@@ -57,10 +62,12 @@ public class Tokenization {
             list.addAll(Arrays.asList(words));
         }
 
+        this.deleteSmallWords(list);
+
         return list;
     }
-    
-    public List extract(String text){
+
+    public List<String> extract(String text){
         return this.extract(text, "");
     }
 
@@ -74,18 +81,18 @@ public class Tokenization {
         return Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("[\u0300-\u036F]", "");
     }
 
-    private void getWordParts(String word, List list, int parts_length){
+    private void getWordParts(String word, List<String> list, int parts_length){
         int array_size = (word.length() - parts_length + 1 > 0 ? word.length() - parts_length + 1 : 0);
 
         for(int i = 0 ; i < array_size ; i++)
             list.add(word.substring(i, i + parts_length));
     }
 
-    private void getBigrams(String word, List list){
+    private void getBigrams(String word, List<String> list){
         getWordParts(word, list, 2);
     }
 
-    private void getTrigrams(String word, List list){
+    private void getTrigrams(String word, List<String> list){
         getWordParts(word, list, 3);
     }
 
@@ -102,4 +109,10 @@ public class Tokenization {
         }
     }
 
+    private void deleteSmallWords(List<String> words){
+        for(int i = words.size()-1 ; i >= 0 ; i--){
+            if(words.get(i).length() < this.words_min_length)
+                words.remove(i);
+        }
+    }
 }
