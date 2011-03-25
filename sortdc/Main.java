@@ -5,8 +5,7 @@
 
 package sortdc;
 
-import java.util.ArrayList;
-import org.tartarus.snowball.*;
+import java.util.List;
 
 /**
  *
@@ -38,10 +37,11 @@ public class Main {
 
         Tokenization tokenization = new Tokenization();
         //tokenization.setExtractWords(false);
+        tokenization.setApplyStemming(true);
         //tokenization.setExtractBigrams(true);
         //tokenization.setExtractTrigrams(true);
 
-        ArrayList test = tokenization.extract("Hello World =)\nbonjour!");
+        List test = tokenization.extract("Bonjour tout le monde les applications de classification sont jolies", "french");
 
         for(int i = 0 ; i < test.size() ; i++)
             System.out.println(test.get(i));

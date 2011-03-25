@@ -6,7 +6,9 @@
 package sortdc;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Arrays;
+import org.tartarus.snowball.SnowballStemmer;
 
 /**
  *
@@ -35,13 +37,10 @@ public class Tokenization {
         this.extract_trigrams = set;
     }
 
-    public ArrayList extract(String text){
-        ArrayList list = new ArrayList();
+    public List extract(String text, String lang){
+        List list = new ArrayList();
 
         String[] words = this.tokenize(text);
-
-        if(this.extract_words)
-            list.addAll(Arrays.asList(words));
 
         if(this.extract_bigrams)
             for(String word : words)
@@ -51,7 +50,17 @@ public class Tokenization {
             for(String word : words)
                 this.getTrigrams(word, list);
 
+        if(this.extract_words){
+            if(this.apply_stemming && !lang.equals(""))
+                this.applyStemming(words, lang);
+            list.addAll(Arrays.asList(words));
+        }
+
         return list;
+    }
+    
+    public List extract(String text){
+        return this.extract(text, "");
     }
 
     private String[] tokenize(String text){
@@ -61,19 +70,33 @@ public class Tokenization {
         return words;
     }
 
-    private void getWordParts(String word, ArrayList list, int parts_length){
+    private void getWordParts(String word, List list, int parts_length){
         int array_size = (word.length() - parts_length + 1 > 0 ? word.length() - parts_length + 1 : 0);
 
         for(int i = 0 ; i < array_size ; i++)
             list.add(word.substring(i, i + parts_length));
     }
 
-    private void getBigrams(String word, ArrayList list){
+    private void getBigrams(String word, List list){
         getWordParts(word, list, 2);
     }
 
-    private void getTrigrams(String word, ArrayList list){
+    private void getTrigrams(String word, List list){
         getWordParts(word, list, 3);
+    }
+
+    private void applyStemming(String[] words, String lang){
+        try {
+            Class stemClass = Class.forName("org.tartarus.snowball.ext."+lang+"Stemmer");
+            SnowballStemmer stemmer = (SnowballStemmer) stemClass.newInstance();
+            for(String word : words){
+                stemmer.setCurrent(word);
+                stemmer.stem();
+                word = stemmer.getCurrent();
+                System.out.println(word);
+            }
+        }catch(Exception e){
+        }
     }
 
 }
