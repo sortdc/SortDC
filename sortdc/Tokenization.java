@@ -5,6 +5,11 @@
 
 package sortdc;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +27,7 @@ public class Tokenization {
     private boolean extract_bigrams = false;
     private boolean extract_trigrams = false;
     private int words_min_length = 2;
+    private List<String> stopWords;
 
     public void setExtractWords(boolean set){
         this.extract_words = set;
@@ -42,6 +48,22 @@ public class Tokenization {
     public void setWordsMinLength(int length){
         this.words_min_length = length;
     }
+    
+    public void setStopWordsFile(String filePath){
+        this.stopWords = new ArrayList();
+        try{
+            InputStream is = new FileInputStream(filePath);
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+            String line;
+            while((line = br.readLine()) != null){
+                this.stopWords.add(line.trim());
+            }
+            br.close();
+        } catch(IOException e){
+            System.out.println(e.getMessage());
+        }
+    }
 
     public List<String> extract(String text, String lang){
         List<String> list = new ArrayList();
@@ -61,6 +83,8 @@ public class Tokenization {
                 this.applyStemming(words, lang);
             list.addAll(Arrays.asList(words));
         }
+        
+        this.deleteStopWords(list);
 
         this.deleteSmallWords(list);
 
@@ -115,4 +139,14 @@ public class Tokenization {
                 words.remove(i);
         }
     }
+
+    private void deleteStopWords(List<String> words){
+        if(this.stopWords == null)
+            return;
+        for(int i = words.size()-1 ; i >= 0 ; i--){
+            if(this.stopWords.contains(words.get(i)))
+                words.remove(i);
+        }
+    }
+
 }
