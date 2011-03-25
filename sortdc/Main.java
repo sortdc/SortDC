@@ -41,7 +41,7 @@ public class Main {
         //tokenization.setExtractBigrams(true);
         //tokenization.setExtractTrigrams(true);
 
-        List test = tokenization.extract("Bonjour tout le monde les applications de classification sont jolies", "french");
+        List test = tokenization.extract("Bonjour tout le monde les applications de classification sont jolies éè à ö légèrement. Porte-monnaies! Hello World =)\nbonjour!", "french");
 
         for(int i = 0 ; i < test.size() ; i++)
             System.out.println(test.get(i));

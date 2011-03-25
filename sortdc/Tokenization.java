@@ -5,10 +5,11 @@
 
 package sortdc;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Arrays;
 import org.tartarus.snowball.SnowballStemmer;
+import java.util.List;
 
 /**
  *
@@ -64,10 +65,13 @@ public class Tokenization {
     }
 
     private String[] tokenize(String text){
-        text = text.replaceAll("\n", " ");
-        String[] words = text.split(" ");
+        text = this.removeAccents(text);
+        text = text.toLowerCase();
+        return text.split("[^a-z0-9\\-]+");
+    }
 
-        return words;
+    private String removeAccents(String text){
+        return Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("[\u0300-\u036F]", "");
     }
 
     private void getWordParts(String word, List list, int parts_length){
