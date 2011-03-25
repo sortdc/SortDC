@@ -93,11 +93,10 @@ public class Tokenization {
         try {
             Class stemClass = Class.forName("org.tartarus.snowball.ext."+lang+"Stemmer");
             SnowballStemmer stemmer = (SnowballStemmer) stemClass.newInstance();
-            for(String word : words){
-                stemmer.setCurrent(word);
+            for(int i=0; i < words.length; i++){
+                stemmer.setCurrent(words[i]);
                 stemmer.stem();
-                word = stemmer.getCurrent();
-                System.out.println(word);
+                words[i] = stemmer.getCurrent();
             }
         }catch(Exception e){
         }
