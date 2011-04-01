@@ -57,7 +57,7 @@ public class Tokenization {
 
     /**
      * extract_trigrams setter.
-     * If set to true, extract() method will ad each text trigrams to the returned list.
+     * If set to true, extract() method will add each text trigrams to the returned list.
      * 
      * @param set
      */
@@ -92,7 +92,7 @@ public class Tokenization {
     }
 
     /**
-     * Analizes a text and returns a list words and tokens depending on instance parameters.
+     * Analizes a text and returns a list of words and tokens depending on instance parameters.
      *
      * @param text text to analize
      * @param lang text language
