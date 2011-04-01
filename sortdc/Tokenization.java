@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package sortdc;
 
 import java.text.Normalizer;
@@ -23,26 +18,64 @@ public class Tokenization {
     private boolean extract_trigrams = false;
     private int words_min_length = 2;
 
+    /**
+     * extract_words parameter setter.
+     * If set to true, extract() method will add each word of the text to the returned list.
+     *
+     * @param set
+     */
     public void setExtractWords(boolean set){
         this.extract_words = set;
     }
 
+    /**
+     * apply_stemming parameter setter.
+     * If set to true, extract() method will stem each word.
+     * /!\ needs extract_word parameter to be set to true as well.
+     *
+     * @param set
+     */
     public void setApplyStemming(boolean set){
         this.apply_stemming = set;
     }
 
+    /**
+     * extract_bigrams parameter setter.
+     * If set to true, extract() method will add each text bigrams to the returned list.
+     *
+     * @param set
+     */
     public void setExtractBigrams(boolean set){
         this.extract_bigrams = set;
     }
 
+    /**
+     * extract_trigrams setter.
+     * If set to true, extract() method will ad each text trigrams to the returned list.
+     * 
+     * @param set
+     */
     public void setExtractTrigrams(boolean set){
         this.extract_trigrams = set;
     }
 
+    /**
+     * words_min_length parameter setter.
+     * Indicates the minimal length of words returned in the extract() method list.
+     *
+     * @param length
+     */
     public void setWordsMinLength(int length){
         this.words_min_length = length;
     }
 
+    /**
+     * Analizes a text and returns a list words and tokens depending on instance parameters.
+     *
+     * @param text text to analize
+     * @param lang text language
+     * @return list of text words/bigrams/trigrams
+     */
     public List<String> extract(String text, String lang){
         List<String> list = new ArrayList();
 
@@ -67,20 +100,45 @@ public class Tokenization {
         return list;
     }
 
+    /**
+     * Calls extract() method with language unspecified.
+     *
+     * @param text text to analize
+     * @return list of text words/bigrams/trigrams
+     */
     public List<String> extract(String text){
         return this.extract(text, "");
     }
 
+    /**
+     * Treats and separates text words.
+     *
+     * @param text text to analize
+     * @return separated words list
+     */
     private String[] tokenize(String text){
         text = this.removeAccents(text);
         text = text.toLowerCase();
         return text.split("[^a-z0-9\\-]+");
     }
 
+    /**
+     * Removes accent from a text.
+     *
+     * @param text text to analize
+     * @return text without accents
+     */
     private String removeAccents(String text){
         return Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("[\u0300-\u036F]", "");
     }
 
+    /**
+     * Separates a word into x letters tokens and add them to a list.
+     *
+     * @param word word to analize
+     * @param list list in which tokens will be added
+     * @param parts_length tokens length
+     */
     private void getWordParts(String word, List<String> list, int parts_length){
         int array_size = (word.length() - parts_length + 1 > 0 ? word.length() - parts_length + 1 : 0);
 
@@ -88,14 +146,34 @@ public class Tokenization {
             list.add(word.substring(i, i + parts_length));
     }
 
+    /**
+     * Separates a word into 2 letters tokens and add them to a list.
+     * Uses getWordParts() method.
+     *
+     * @param word word to analize
+     * @param list list in which tokens will be added
+     */
     private void getBigrams(String word, List<String> list){
         getWordParts(word, list, 2);
     }
 
+    /**
+     * Separates a word into 3 letters tokens and add them to a list.
+     * Uses getWordParts() method.
+     *
+     * @param word word to analize
+     * @param list list in which tokens will be added
+     */
     private void getTrigrams(String word, List<String> list){
         getWordParts(word, list, 3);
     }
 
+    /**
+     * Reduces words to their roots.
+     *
+     * @param words list of words to be stemmed
+     * @param lang language used for stemming
+     */
     private void applyStemming(String[] words, String lang){
         try {
             Class stemClass = Class.forName("org.tartarus.snowball.ext."+lang+"Stemmer");
@@ -109,6 +187,12 @@ public class Tokenization {
         }
     }
 
+    /**
+     * Deletes x letters words from the list returned by extract() method.
+     * "x" corresponds to words_min_length parameter.
+     *
+     * @param words words list to analize
+     */
     private void deleteSmallWords(List<String> words){
         for(int i = words.size()-1 ; i >= 0 ; i--){
             if(words.get(i).length() < this.words_min_length)
