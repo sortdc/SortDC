@@ -1,4 +1,4 @@
-package sortdc;
+package org.sortdc.sortdc;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -30,7 +30,7 @@ public class Tokenization {
      *
      * @param set
      */
-    public void setExtractWords(boolean set){
+    public void setExtractWords(boolean set) {
         this.extract_words = set;
     }
 
@@ -41,7 +41,7 @@ public class Tokenization {
      *
      * @param set
      */
-    public void setApplyStemming(boolean set){
+    public void setApplyStemming(boolean set) {
         this.apply_stemming = set;
     }
 
@@ -51,7 +51,7 @@ public class Tokenization {
      *
      * @param set
      */
-    public void setExtractBigrams(boolean set){
+    public void setExtractBigrams(boolean set) {
         this.extract_bigrams = set;
     }
 
@@ -61,7 +61,7 @@ public class Tokenization {
      * 
      * @param set
      */
-    public void setExtractTrigrams(boolean set){
+    public void setExtractTrigrams(boolean set) {
         this.extract_trigrams = set;
     }
 
@@ -71,22 +71,22 @@ public class Tokenization {
      *
      * @param length
      */
-    public void setWordsMinLength(int length){
+    public void setWordsMinLength(int length) {
         this.words_min_length = length;
     }
-    
-    public void setStopWordsFile(String filePath){
+
+    public void setStopWordsFile(String filePath) {
         this.stopWords = new ArrayList();
-        try{
+        try {
             InputStream is = new FileInputStream(filePath);
             InputStreamReader isr = new InputStreamReader(is);
             BufferedReader br = new BufferedReader(isr);
             String line;
-            while((line = br.readLine()) != null){
+            while ((line = br.readLine()) != null) {
                 this.stopWords.add(line.trim());
             }
             br.close();
-        } catch(IOException e){
+        } catch (IOException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -98,25 +98,30 @@ public class Tokenization {
      * @param lang text language
      * @return list of text words/bigrams/trigrams
      */
-    public List<String> extract(String text, String lang){
+    public List<String> extract(String text, String lang) {
         List<String> list = new ArrayList();
 
         String[] words = this.tokenize(text);
 
-        if(this.extract_bigrams)
-            for(String word : words)
+        if (this.extract_bigrams) {
+            for (String word : words) {
                 this.getBigrams(word, list);
+            }
+        }
 
-        if(this.extract_trigrams)
-            for(String word : words)
+        if (this.extract_trigrams) {
+            for (String word : words) {
                 this.getTrigrams(word, list);
+            }
+        }
 
-        if(this.extract_words){
-            if(this.apply_stemming && !lang.equals(""))
+        if (this.extract_words) {
+            if (this.apply_stemming && !lang.equals("")) {
                 this.applyStemming(words, lang);
+            }
             list.addAll(Arrays.asList(words));
         }
-        
+
         this.deleteStopWords(list);
 
         this.deleteSmallWords(list);
@@ -130,7 +135,7 @@ public class Tokenization {
      * @param text text to analize
      * @return list of text words/bigrams/trigrams
      */
-    public List<String> extract(String text){
+    public List<String> extract(String text) {
         return this.extract(text, "");
     }
 
@@ -140,7 +145,7 @@ public class Tokenization {
      * @param text text to analize
      * @return separated words list
      */
-    private String[] tokenize(String text){
+    private String[] tokenize(String text) {
         text = this.removeAccents(text);
         text = text.toLowerCase();
         return text.split("[^a-z0-9\\-]+");
@@ -152,7 +157,7 @@ public class Tokenization {
      * @param text text to analize
      * @return text without accents
      */
-    private String removeAccents(String text){
+    private String removeAccents(String text) {
         return Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("[\u0300-\u036F]", "");
     }
 
@@ -163,11 +168,12 @@ public class Tokenization {
      * @param list list in which tokens will be added
      * @param parts_length tokens length
      */
-    private void getWordParts(String word, List<String> list, int parts_length){
+    private void getWordParts(String word, List<String> list, int parts_length) {
         int array_size = (word.length() - parts_length + 1 > 0 ? word.length() - parts_length + 1 : 0);
 
-        for(int i = 0 ; i < array_size ; i++)
+        for (int i = 0; i < array_size; i++) {
             list.add(word.substring(i, i + parts_length));
+        }
     }
 
     /**
@@ -177,7 +183,7 @@ public class Tokenization {
      * @param word word to analize
      * @param list list in which tokens will be added
      */
-    private void getBigrams(String word, List<String> list){
+    private void getBigrams(String word, List<String> list) {
         getWordParts(word, list, 2);
     }
 
@@ -188,7 +194,7 @@ public class Tokenization {
      * @param word word to analize
      * @param list list in which tokens will be added
      */
-    private void getTrigrams(String word, List<String> list){
+    private void getTrigrams(String word, List<String> list) {
         getWordParts(word, list, 3);
     }
 
@@ -198,16 +204,16 @@ public class Tokenization {
      * @param words list of words to be stemmed
      * @param lang language used for stemming
      */
-    private void applyStemming(String[] words, String lang){
+    private void applyStemming(String[] words, String lang) {
         try {
-            Class stemClass = Class.forName("org.tartarus.snowball.ext."+lang+"Stemmer");
+            Class stemClass = Class.forName("org.tartarus.snowball.ext." + lang + "Stemmer");
             SnowballStemmer stemmer = (SnowballStemmer) stemClass.newInstance();
-            for(int i=0; i < words.length; i++){
+            for (int i = 0; i < words.length; i++) {
                 stemmer.setCurrent(words[i]);
                 stemmer.stem();
                 words[i] = stemmer.getCurrent();
             }
-        }catch(Exception e){
+        } catch (Exception e) {
         }
     }
 
@@ -217,20 +223,22 @@ public class Tokenization {
      *
      * @param words words list to analize
      */
-    private void deleteSmallWords(List<String> words){
-        for(int i = words.size()-1 ; i >= 0 ; i--){
-            if(words.get(i).length() < this.words_min_length)
+    private void deleteSmallWords(List<String> words) {
+        for (int i = words.size() - 1; i >= 0; i--) {
+            if (words.get(i).length() < this.words_min_length) {
                 words.remove(i);
+            }
         }
     }
 
-    private void deleteStopWords(List<String> words){
-        if(this.stopWords == null)
+    private void deleteStopWords(List<String> words) {
+        if (this.stopWords == null) {
             return;
-        for(int i = words.size()-1 ; i >= 0 ; i--){
-            if(this.stopWords.contains(words.get(i)))
+        }
+        for (int i = words.size() - 1; i >= 0; i--) {
+            if (this.stopWords.contains(words.get(i))) {
                 words.remove(i);
+            }
         }
     }
-
 }
