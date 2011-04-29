@@ -1,20 +1,11 @@
 package org.sortdc.sortdc;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.tartarus.snowball.SnowballStemmer;
 import java.util.List;
 
-/**
- *
- * @author ronan
- */
 public class Tokenization {
 
     private boolean extract_words = true;
@@ -75,20 +66,8 @@ public class Tokenization {
         this.words_min_length = length;
     }
 
-    public void setStopWordsFile(String filePath) {
-        this.stopWords = new ArrayList();
-        try {
-            InputStream is = new FileInputStream(filePath);
-            InputStreamReader isr = new InputStreamReader(is);
-            BufferedReader br = new BufferedReader(isr);
-            String line;
-            while ((line = br.readLine()) != null) {
-                this.stopWords.add(line.trim());
-            }
-            br.close();
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
+    public void setStopWords(List<String> stopWords) {
+        this.stopWords = stopWords;
     }
 
     /**
