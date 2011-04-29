@@ -1,4 +1,3 @@
-
 package org.sortdc.sortdc;
 
 import java.io.BufferedReader;
@@ -8,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
 
@@ -40,8 +40,28 @@ public class Main {
 
         List test = tokenization.extract("Bonjour tout le monde les applications de classification sont jolies éè à ö légèrement. Porte-monnaies! Hello World =)\nbonjour!", "french");
 
-        for (int i = 0; i < test.size(); i++) {
-            System.out.println(test.get(i));
+        /*for (int i = 0; i < test.size(); i++) {
+        System.out.println(test.get(i));
+        }*/
+
+        try {
+            Config config = new Config();
+            config.loadFile("config/config.yaml");
+
+            Map db = (Map) config.get("database");
+
+            System.out.println(db.get("host"));
+            System.out.println(db.get("port"));
+            System.out.println(db.get("dbname"));
+            System.out.println(db.get("username"));
+            System.out.println(db.get("password"));
+
+            List instances = (List) config.get("instances");
+
+            System.out.println(instances);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 }

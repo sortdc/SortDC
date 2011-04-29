@@ -1,0 +1,18 @@
+database:
+ host: localhost
+ port: 27017
+ dbname: sortdc
+ username: azerty
+ password: azerty
+
+instances:
+ - name: thematics
+   stemming: true
+   autotrain: true
+   autotrain_threshold: 0.7
+   multicategories: true
+
+ - name: languages
+   words: false
+   bigrams: true
+   trigrams: true
