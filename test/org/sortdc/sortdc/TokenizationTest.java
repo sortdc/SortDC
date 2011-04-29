@@ -137,11 +137,15 @@ public class TokenizationTest {
         instance.setStopWords(stopWords);
         List<String> test = instance.extract(this.testText, "french");
         List<String> expected = Arrays.asList(
-           "hel", "ell", "llo", "wor", "orl", "rld", "gra", "ran", "and", "nd-",
-           "d-m", "-me", "mer", "ere", "fai", "ait", "des", "con", "onf", "nfi",
-           "fit", "itu", "tur", "ure", "res", "ave", "vec", "app", "ppl", "pli",
-           "lic", "ica", "cat", "ati", "tio", "ion", "hello", "world",
-           "grand-mer", "confitur", "appliqu"
+           "hello", "world", "grand-mer", "de", "confitur", "appliqu", "he",
+           "el", "ll", "lo", "wo", "or", "rl", "ld", "gr", "ra", "an", "nd",
+           "d-", "-m", "me", "er", "re", "fa", "ai", "it", "de", "es", "co",
+           "on", "nf", "fi", "it", "tu", "ur", "re", "es", "av", "ve", "ec",
+           "ap", "pp", "pl", "li", "ic", "ca", "at", "ti", "io", "on", "hel",
+           "ell", "llo", "wor", "orl", "rld", "gra", "ran", "and", "nd-", "d-m",
+           "-me", "mer", "ere", "fai", "ait", "des", "con", "onf", "nfi", "fit",
+           "itu", "tur", "ure", "res", "ave", "vec", "app", "ppl", "pli", "lic",
+           "ica", "cat", "ati", "tio", "ion"
         );
         assertEquals(expected.size(), test.size());
         for (int i = 0; i < expected.size(); i++) {

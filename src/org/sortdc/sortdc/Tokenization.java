@@ -78,34 +78,28 @@ public class Tokenization {
      * @return list of text words/bigrams/trigrams
      */
     public List<String> extract(String text, String lang) {
-        List<String> list = new ArrayList();
+        List<String> tokens = new ArrayList();
 
         String[] words = this.tokenize(text);
 
-        if (this.extract_bigrams) {
-            for (String word : words) {
-                this.getBigrams(word, list);
+        if (this.extract_words) {
+            tokens.addAll(Arrays.asList(words));
+            this.deleteSmallWords(tokens);
+            this.deleteStopWords(tokens);
+            if (this.apply_stemming && !lang.equals("")) {
+                this.applyStemming(tokens, lang);
             }
+        }
+
+        if (this.extract_bigrams) {
+            tokens.addAll(this.getBigrams(words));
         }
 
         if (this.extract_trigrams) {
-            for (String word : words) {
-                this.getTrigrams(word, list);
-            }
+            tokens.addAll(this.getTrigrams(words));
         }
 
-        if (this.extract_words) {
-            if (this.apply_stemming && !lang.equals("")) {
-                this.applyStemming(words, lang);
-            }
-            list.addAll(Arrays.asList(words));
-        }
-
-        this.deleteStopWords(list);
-
-        this.deleteSmallWords(list);
-
-        return list;
+        return tokens;
     }
 
     /**
@@ -156,25 +150,31 @@ public class Tokenization {
     }
 
     /**
-     * Separates a word into 2 letters tokens and add them to a list.
+     * Separates words in a list of words into 2 letters tokens and returns them
      * Uses getWordParts() method.
      *
-     * @param word word to analize
-     * @param list list in which tokens will be added
+     * @param words words to analize
      */
-    private void getBigrams(String word, List<String> list) {
-        getWordParts(word, list, 2);
+    private List<String> getBigrams(String[] words) {
+        List<String> grams = new ArrayList();
+        for (String word : words) {
+            this.getWordParts(word, grams, 2);
+        }
+        return grams;
     }
 
     /**
-     * Separates a word into 3 letters tokens and add them to a list.
+     * Separates words in a list of words into 3 letters tokens and returns them
      * Uses getWordParts() method.
      *
-     * @param word word to analize
-     * @param list list in which tokens will be added
+     * @param words words to analize
      */
-    private void getTrigrams(String word, List<String> list) {
-        getWordParts(word, list, 3);
+    private List<String> getTrigrams(String[] words) {
+        List<String> grams = new ArrayList();
+        for (String word : words) {
+            this.getWordParts(word, grams, 3);
+        }
+        return grams;
     }
 
     /**
@@ -183,14 +183,14 @@ public class Tokenization {
      * @param words list of words to be stemmed
      * @param lang language used for stemming
      */
-    private void applyStemming(String[] words, String lang) {
+    private void applyStemming(List<String> words, String lang) {
         try {
             Class stemClass = Class.forName("org.tartarus.snowball.ext." + lang + "Stemmer");
             SnowballStemmer stemmer = (SnowballStemmer) stemClass.newInstance();
-            for (int i = 0; i < words.length; i++) {
-                stemmer.setCurrent(words[i]);
+            for (int i = 0; i < words.size(); i++) {
+                stemmer.setCurrent(words.get(i));
                 stemmer.stem();
-                words[i] = stemmer.getCurrent();
+                words.set(i, stemmer.getCurrent());
             }
         } catch (Exception e) {
         }
@@ -210,6 +210,11 @@ public class Tokenization {
         }
     }
 
+    /**
+     * Deletes stop words
+     *
+     * @param words words list to analize
+     */
     private void deleteStopWords(List<String> words) {
         if (this.stopWords == null) {
             return;
