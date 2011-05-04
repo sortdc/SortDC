@@ -1,18 +1,21 @@
 database:
- host: localhost
- port: 27017
- dbname: sortdc
- username: azerty
- password: azerty
+  host: localhost
+  port: 27017
+  dbname: sortdc
+  #username: azerty
+  #password: azerty
 
-instances:
- - name: thematics
-   stemming: true
-   autotrain: true
-   autotrain_threshold: 0.7
-   multicategories: true
+classifiers:
 
- - name: languages
-   words: false
-   bigrams: true
-   trigrams: true
+  - name: thematics
+    stemming: true
+    autotrain: true
+    autotrain_threshold: 0.7
+    multicategories: true
+    stopwords_file: config/stopwords.txt
+    
+  - name: languages
+    words: false
+    bigrams: true
+    trigrams: true
+    stopwords: [la, le, les, ce, ces, ça]
