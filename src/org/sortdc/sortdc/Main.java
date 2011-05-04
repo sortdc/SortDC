@@ -45,7 +45,7 @@ public class Main {
         }*/
 
         try {
-            Config config = new Config();
+            Config config = Config.getInstance();
             config.loadFile("config/config.yaml");
 
             Map db = (Map) config.get("database");
