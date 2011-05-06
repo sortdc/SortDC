@@ -24,11 +24,11 @@ public class Category {
         this.name = name;
     }
 
-    public List<Category> findAll() {
-        try {
-            return Config.getInstance().getDatabase().findAllCategories();
-        }catch(Exception e){
-            System.out.println(e.getMessage());
-        }
+    public List<Category> findAll() throws Exception {
+        return Config.getInstance().getDatabase().findAllCategories();
+    }
+
+    public void save() throws Exception {
+        Config.getInstance().getDatabase().saveCategory(this);
     }
 }
