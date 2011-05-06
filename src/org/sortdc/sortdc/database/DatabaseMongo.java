@@ -1,7 +1,14 @@
 package org.sortdc.sortdc.database;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import com.mongodb.Mongo;
+import java.util.ArrayList;
+import java.util.List;
+import org.sortdc.sortdc.dao.Category;
 
 public class DatabaseMongo extends Database {
 
@@ -37,5 +44,43 @@ public class DatabaseMongo extends Database {
         }
 
         this.db = database;
+    }
+
+    /**
+     * Finds all registered categories
+     * 
+     * @return Categories list
+     * @throws Exception
+     */
+    public List<Category> findAllCategories() throws Exception {
+        List<Category> categories = new ArrayList();
+        DBCollection collection = this.db.getCollection("categories");
+        DBCursor cursor = collection.find();
+        while (cursor.hasNext()) {
+            DBObject obj = cursor.next();
+            Category category = new Category();
+            category.setId((String) obj.get("_id"));
+            category.setName((String) obj.get("name"));
+            categories.add(category);
+        }
+        return categories;
+    }
+
+    /**
+     * Saves or updates a category
+     *
+     * @param category
+     * @throws Exception
+     */
+    public void saveCategory(Category category) throws Exception {
+        DBCollection collection = this.db.getCollection("categories");
+        DBObject obj = new BasicDBObject();
+        obj.put("name", category.getName());
+        if (category.getId() != null) {
+            collection.insert(obj);
+        } else {
+            obj.put("_id", category.getId());
+            collection.save(obj);
+        }
     }
 }

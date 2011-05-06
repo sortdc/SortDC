@@ -1,6 +1,7 @@
 package org.sortdc.sortdc.dao;
 
 import java.util.List;
+import org.sortdc.sortdc.Config;
 
 public class Category {
 
@@ -24,7 +25,10 @@ public class Category {
     }
 
     public List<Category> findAll() {
-        // TODO
-        return null;
+        try {
+            return Config.getInstance().getDatabase().findAllCategories();
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 }
