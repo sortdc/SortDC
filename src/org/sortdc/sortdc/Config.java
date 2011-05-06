@@ -160,7 +160,15 @@ public class Config {
             tokenization.setExtractWords(this.paramIsTrue(classifierConfig.get(CLASSIFIER_WORDS)));
         }
         if (classifierConfig.containsKey(CLASSIFIER_STEMMING)) {
-            tokenization.setApplyStemming(this.paramIsTrue(classifierConfig.get(CLASSIFIER_STEMMING)));
+            if (this.paramIsTrue(classifierConfig.get(CLASSIFIER_STEMMING))) {
+                if (classifierConfig.get(CLASSIFIER_LANG) instanceof String) {
+                    tokenization.enableStemming((String) classifierConfig.get(CLASSIFIER_LANG));
+                } else {
+                    throw new Exception("You must define a language for stemming");
+                }
+            } else {
+                tokenization.disableStemming();
+            }
         }
         if (classifierConfig.containsKey(CLASSIFIER_WORDS_MIN_LENGTH)) {
             Integer min_length = this.paramToInt(classifierConfig.get(CLASSIFIER_WORDS_MIN_LENGTH));
@@ -182,12 +190,6 @@ public class Config {
 
         Classifier classifier = new Classifier(tokenization);
 
-
-        if (classifierConfig.containsKey(CLASSIFIER_LANG)) {
-            if (classifierConfig.get(CLASSIFIER_LANG) instanceof String) {
-                classifier.setLang((String) classifierConfig.get(CLASSIFIER_LANG));
-            }
-        }
         return classifier;
     }
 }

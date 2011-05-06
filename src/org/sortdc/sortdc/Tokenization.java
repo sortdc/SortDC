@@ -3,13 +3,16 @@ package org.sortdc.sortdc;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import org.tartarus.snowball.SnowballStemmer;
 import java.util.List;
+import java.util.Map;
 
 public class Tokenization {
 
     private boolean extract_words = true;
     private boolean apply_stemming = false;
+    private String lang;
     private boolean extract_bigrams = false;
     private boolean extract_trigrams = false;
     private int words_min_length = 2;
@@ -26,14 +29,26 @@ public class Tokenization {
     }
 
     /**
-     * apply_stemming parameter setter.
-     * If set to true, extract() method will stem each word.
-     * /!\ needs extract_word parameter to be set to true as well.
+     * Enables stemming and sets language
      *
-     * @param set
+     * @param lang
+     * @throws Exception
      */
-    public void setApplyStemming(boolean set) {
-        this.apply_stemming = set;
+    public void enableStemming(String lang) throws Exception {
+        try {
+            Class.forName("org.tartarus.snowball.ext." + lang + "Stemmer");
+        } catch (ClassNotFoundException e) {
+            throw new Exception("Language not recognized: " + lang);
+        }
+        this.lang = lang;
+        this.apply_stemming = true;
+    }
+
+    /**
+     * Disables stemming
+     */
+    public void disableStemming() {
+        this.apply_stemming = false;
     }
 
     /**
@@ -77,7 +92,7 @@ public class Tokenization {
      * @param lang text language
      * @return list of text words/bigrams/trigrams
      */
-    public List<String> extract(String text, String lang) {
+    public List<String> extract(String text) {
         List<String> tokens = new ArrayList();
 
         String[] words = this.tokenize(text);
@@ -86,8 +101,8 @@ public class Tokenization {
             tokens.addAll(Arrays.asList(words));
             this.deleteSmallWords(tokens);
             this.deleteStopWords(tokens);
-            if (this.apply_stemming && !lang.equals("")) {
-                this.applyStemming(tokens, lang);
+            if (this.apply_stemming) {
+                this.applyStemming(tokens);
             }
         }
 
@@ -100,16 +115,6 @@ public class Tokenization {
         }
 
         return tokens;
-    }
-
-    /**
-     * Calls extract() method with language unspecified.
-     *
-     * @param text text to analize
-     * @return list of text words/bigrams/trigrams
-     */
-    public List<String> extract(String text) {
-        return this.extract(text, "");
     }
 
     /**
@@ -183,9 +188,9 @@ public class Tokenization {
      * @param words list of words to be stemmed
      * @param lang language used for stemming
      */
-    private void applyStemming(List<String> words, String lang) {
+    private void applyStemming(List<String> words) {
         try {
-            Class stemClass = Class.forName("org.tartarus.snowball.ext." + lang + "Stemmer");
+            Class stemClass = Class.forName("org.tartarus.snowball.ext." + this.lang + "Stemmer");
             SnowballStemmer stemmer = (SnowballStemmer) stemClass.newInstance();
             for (int i = 0; i < words.size(); i++) {
                 stemmer.setCurrent(words.get(i));
@@ -224,5 +229,17 @@ public class Tokenization {
                 words.remove(i);
             }
         }
+    }
+
+    public Map<String, Integer> getOccurrences(List<String> words) {
+        Map<String, Integer> occurrences = new HashMap();
+        for (String word : words) {
+            if (occurrences.containsKey(word)) {
+                occurrences.put(word, 1);
+            } else {
+                occurrences.put(word, ((int) occurrences.get(word)) + 1);
+            }
+        }
+        return occurrences;
     }
 }
