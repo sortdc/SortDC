@@ -10,11 +10,22 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.sortdc.sortdc.database.Database;
+import org.sortdc.sortdc.database.DatabaseMongo;
+import org.sortdc.sortdc.database.DatabaseMysql;
 
 public class Config {
 
     private static Config instance;
     private Map parameters;
+    public static final String DATABASE = "database";
+    public static final String DATABASE_DBMS = "dbms";
+    public static final String DATABASE_HOST = "host";
+    public static final String DATABASE_PORT = "port";
+    public static final String DATABASE_DBNAME = "dbname";
+    public static final String DATABASE_USERNAME = "username";
+    public static final String DATABASE_PASSWORD = "password";
+    public static final String DATABASE_INSTANCE = "instance";
     public static final String CLASSIFIERS_LIST = "classifiers";
     public static final String CLASSIFIER_LANG = "lang";
     public static final String CLASSIFIER_WORDS = "words";
@@ -191,5 +202,44 @@ public class Config {
         Classifier classifier = new Classifier(tokenization);
 
         return classifier;
+    }
+
+    /**
+     * Creates an instance of Database if doesn't exist, else returns existing instance
+     *
+     * @return
+     * @throws Exception
+     */
+    public Database getDatabase() throws Exception {
+        Map databaseConfig = (Map) this.parameters.get(DATABASE);
+
+        if (databaseConfig.containsKey(DATABASE_INSTANCE) && databaseConfig.get(DATABASE_INSTANCE) instanceof Database) {
+            return (Database) databaseConfig.get(DATABASE_INSTANCE);
+        }
+
+        Database database = null;
+        String dbms = (String) databaseConfig.get(DATABASE_DBMS);
+
+        if (dbms.toLowerCase().equals("mongodb")) {
+            database = DatabaseMongo.getInstance();
+        } else if (dbms.toLowerCase().equals("mysql")) {
+            database = DatabaseMysql.getInstance();
+        }
+
+        database.setHost((String) databaseConfig.get(DATABASE_HOST));
+        database.setPort(this.paramToInt(databaseConfig.get(DATABASE_PORT)));
+        database.setDbName((String) databaseConfig.get(DATABASE_DBNAME));
+        if (databaseConfig.containsKey(DATABASE_USERNAME) && databaseConfig.containsKey(DATABASE_PASSWORD)) {
+            database.setUsername((String) databaseConfig.get(DATABASE_USERNAME));
+            database.setPassword((String) databaseConfig.get(DATABASE_PASSWORD));
+        }
+        database.connect();
+
+        if (database == null) {
+            throw new Exception("Unsupported DBMS: " + dbms);
+        } else {
+            databaseConfig.put(DATABASE_INSTANCE, database);
+            return database;
+        }
     }
 }
