@@ -24,12 +24,18 @@ public class DatabaseMongo extends Database {
     }
 
     /**
-     * Establishes the connextion to the database
+     * Establishes connection with database
      *
      * @throws Exception
      */
     public void connect() throws Exception {
         Mongo init = new Mongo(this.host, this.port);
-        this.db = init.getDB(this.db_name);
+
+        DB database = init.getDB(this.db_name);
+        if(this.username != null && this.password != null && !db.authenticate(this.username, this.password.toCharArray())){
+            throw new Exception("Connection denied : incorrect database authentication");
+        }
+
+        this.db = database;
     }
 }
