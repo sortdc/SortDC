@@ -7,6 +7,6 @@ public class DatabaseMysql extends Database {
     private Connection db;
     
     public void connect() throws Exception {
-        this.db = DriverManager.getConnection("jdbc:mysql://"+this.host+"/"+this.db_name+"", this.username, this.password);   
+        this.db = DriverManager.getConnection("jdbc:mysql://"+this.host+"/"+this.db_name, this.username, this.password);   
     }
 }
