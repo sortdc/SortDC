@@ -8,6 +8,7 @@ database:
 classifiers:
 
   - name: thematics
+    lang: french
     stemming: true
     autotrain: true
     autotrain_threshold: 0.7

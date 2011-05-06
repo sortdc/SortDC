@@ -1,7 +1,5 @@
 package org.sortdc.sortdc;
 
-import java.util.List;
-
 public class Main {
 
     /**
@@ -15,7 +13,11 @@ public class Main {
             System.out.println(e.getMessage());
         }
 
-        List classifiers = (List) config.get(Config.CLASSIFIERS_LIST);
-        System.out.println(classifiers);
+        try {
+            Classifier classifier = config.getClassifier(0);
+            classifier.train("Bonjour je fais des confitures", "lolizator");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 }
