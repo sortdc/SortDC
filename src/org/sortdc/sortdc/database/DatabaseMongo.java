@@ -32,7 +32,7 @@ public class DatabaseMongo extends Database {
         Mongo init = new Mongo(this.host, this.port);
 
         DB database = init.getDB(this.db_name);
-        if(this.username != null && this.password != null && !db.authenticate(this.username, this.password.toCharArray())){
+        if (this.username != null && this.password != null && !db.authenticate(this.username, this.password.toCharArray())) {
             throw new Exception("Connection denied : incorrect database authentication");
         }
 
