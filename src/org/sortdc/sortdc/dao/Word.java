@@ -1,10 +1,8 @@
 package org.sortdc.sortdc.dao;
 
-import java.util.HashMap;
 import java.util.Map;
-import org.sortdc.sortdc.dao.interfaces.WordInterface;
 
-public class Word implements WordInterface {
+public class Word {
 
     private String id;
     private String name;

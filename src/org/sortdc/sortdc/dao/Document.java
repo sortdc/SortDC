@@ -1,9 +1,8 @@
 package org.sortdc.sortdc.dao;
 
 import java.util.Map;
-import org.sortdc.sortdc.dao.interfaces.DocumentInterface;
 
-public class Document implements DocumentInterface {
+public class Document {
 
     private String id;
     private String name;
