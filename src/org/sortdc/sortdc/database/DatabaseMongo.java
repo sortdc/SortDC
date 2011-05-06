@@ -1,5 +1,6 @@
 package org.sortdc.sortdc.database;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
@@ -63,5 +64,23 @@ public class DatabaseMongo extends Database {
             categories.add(category);
         }
         return categories;
+    }
+
+    /**
+     * Saves or updates a category
+     *
+     * @param category
+     * @throws Exception
+     */
+    public void saveCategory(Category category) throws Exception {
+        DBCollection collection = this.db.getCollection("categories");
+        DBObject obj = new BasicDBObject();
+        obj.put("name", category.getName());
+        if (category.getId() != null) {
+            collection.insert(obj);
+        } else {
+            obj.put("_id", category.getId());
+            collection.save(obj);
+        }
     }
 }

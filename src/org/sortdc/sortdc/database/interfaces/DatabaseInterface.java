@@ -18,4 +18,6 @@ public interface DatabaseInterface {
     public void setPassword(String password);
 
     public List<Category> findAllCategories() throws Exception;
+
+    public void saveCategory(Category category) throws Exception;
 }
