@@ -1,4 +1,5 @@
 database:
+  sgbd: mongodb
   host: localhost
   port: 27017
   dbname: sortdc

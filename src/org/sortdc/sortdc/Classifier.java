@@ -1,6 +1,8 @@
 package org.sortdc.sortdc;
 
+import java.util.ArrayList;
 import java.util.List;
+import org.sortdc.sortdc.dao.Category;
 
 public class Classifier {
 
