@@ -18,6 +18,9 @@ public class Config {
 
     private static Config instance;
     private Map parameters;
+    public static final String LOG = "log";
+    public static final String LOG_VERBOSE = "verbose";
+    public static final String LOG_FILEPATH = "filepath";
     public static final String DATABASE = "database";
     public static final String DATABASE_DBMS = "dbms";
     public static final String DATABASE_HOST = "host";
@@ -59,7 +62,12 @@ public class Config {
      */
     public void loadFile(String filePath) throws Exception {
         YamlReader reader = new YamlReader(new FileReader(filePath));
-        this.parameters = (Map) reader.read();
+        Object params = reader.read();
+        if (params instanceof Map) {
+            this.parameters = (Map) params;
+        } else {
+            throw new Exception("Invalid config file");
+        }
 
         this.loadStopWords();
     }
@@ -88,7 +96,7 @@ public class Config {
                     }
                     br.close();
                 } catch (IOException e) {
-                    System.out.println(e.getMessage());
+                    Log.getInstance().add(e.getMessage());
                 }
                 if (stopWords.size() != 0 || classifier.get(CLASSIFIER_STOPWORDS) == null) {
                     classifier.put(CLASSIFIER_STOPWORDS, stopWords);
@@ -121,7 +129,7 @@ public class Config {
      * Converts a config parameter to a boolean
      *
      * @param value
-     * @return boolean value
+     * @return
      */
     public boolean paramIsTrue(Object value) {
         if (value instanceof Boolean) {
@@ -139,16 +147,79 @@ public class Config {
      * Converts a config parameter to an integer
      *
      * @param value
-     * @return integer value
+     * @return
+     * @throws Exception
      */
-    public Integer paramToInt(Object value) {
+    public Integer paramToInt(Object value) throws Exception {
         if (value instanceof Integer) {
             return (Integer) value;
         }
         if (value instanceof String) {
             return Integer.parseInt((String) value);
         }
+        throw new Exception("Invalid number format: " + value);
+    }
+
+    /**
+     * Converts a config parameter to a String
+     *
+     * @param value
+     * @return
+     * @throws Exception
+     */
+    public String paramToString(Object value) throws Exception {
+        if (value instanceof String) {
+            return (String) value;
+        }
+        return value.toString();
+    }
+
+    /**
+     * Converts a config parameter to a List
+     *
+     * @param value
+     * @return
+     * @throws Exception
+     */
+    public List paramToList(Object value) throws Exception {
+        if (value instanceof List) {
+            return (List) value;
+        }
         return null;
+    }
+
+    /**
+     * Converts a config parameter to a List
+     *
+     * @param value
+     * @return
+     * @throws Exception
+     */
+    public Map paramToMap(Object value) throws Exception {
+        if (value instanceof Map) {
+            return (Map) value;
+        }
+        return null;
+    }
+
+    /**
+     * Applies config for logging system
+     *
+     * @throws Exception
+     */
+    public void applyLogConfig() throws Exception {
+        Map logConfig = this.paramToMap(this.get(LOG));
+        if (logConfig == null) {
+            return;
+        }
+        Log log = Log.getInstance();
+
+        if (logConfig.containsKey(LOG_VERBOSE)) {
+            log.setVerbose(this.paramIsTrue(logConfig.get(LOG_VERBOSE)));
+        }
+        if (logConfig.containsKey(LOG_FILEPATH)) {
+            log.setFilepath(this.paramToString(logConfig.get(LOG_FILEPATH)));
+        }
     }
 
     /**
@@ -159,12 +230,15 @@ public class Config {
      * @throws Exception
      */
     public Classifier getClassifier(int id) throws Exception {
-        List classifiers = (List) this.get(Config.CLASSIFIERS_LIST);
-        if (id >= classifiers.size()) {
+        List classifiers = this.paramToList(this.get(Config.CLASSIFIERS_LIST));
+        if (classifiers == null || id >= classifiers.size()) {
             throw new Exception("Classifier not found");
         }
 
-        Map classifierConfig = (Map) classifiers.get(id);
+        Map classifierConfig = this.paramToMap(classifiers.get(id));
+        if (classifierConfig == null) {
+            throw new Exception("Invalid classifier config");
+        }
 
         Tokenization tokenization = new Tokenization();
         if (classifierConfig.containsKey(CLASSIFIER_WORDS)) {
@@ -172,8 +246,8 @@ public class Config {
         }
         if (classifierConfig.containsKey(CLASSIFIER_STEMMING)) {
             if (this.paramIsTrue(classifierConfig.get(CLASSIFIER_STEMMING))) {
-                if (classifierConfig.get(CLASSIFIER_LANG) instanceof String) {
-                    tokenization.enableStemming((String) classifierConfig.get(CLASSIFIER_LANG));
+                if (classifierConfig.containsKey(CLASSIFIER_LANG)) {
+                    tokenization.enableStemming(this.paramToString(classifierConfig.get(CLASSIFIER_LANG)));
                 } else {
                     throw new Exception("You must define a language for stemming");
                 }
@@ -182,10 +256,7 @@ public class Config {
             }
         }
         if (classifierConfig.containsKey(CLASSIFIER_WORDS_MIN_LENGTH)) {
-            Integer min_length = this.paramToInt(classifierConfig.get(CLASSIFIER_WORDS_MIN_LENGTH));
-            if (min_length != null) {
-                tokenization.setWordsMinLength(min_length);
-            }
+            tokenization.setWordsMinLength(this.paramToInt(classifierConfig.get(CLASSIFIER_WORDS_MIN_LENGTH)));
         }
         if (classifierConfig.containsKey(CLASSIFIER_BIGRAMS)) {
             tokenization.setExtractBigrams(this.paramIsTrue(classifierConfig.get(CLASSIFIER_BIGRAMS)));
@@ -194,9 +265,7 @@ public class Config {
             tokenization.setExtractTrigrams(this.paramIsTrue(classifierConfig.get(CLASSIFIER_TRIGRAMS)));
         }
         if (classifierConfig.containsKey(CLASSIFIER_STOPWORDS)) {
-            if (classifierConfig.get(CLASSIFIER_STOPWORDS) instanceof List) {
-                tokenization.setStopWords((List<String>) classifierConfig.get(CLASSIFIER_STOPWORDS));
-            }
+            tokenization.setStopWords(this.paramToList(classifierConfig.get(CLASSIFIER_STOPWORDS)));
         }
 
         Classifier classifier = new Classifier(tokenization);
@@ -211,35 +280,36 @@ public class Config {
      * @throws Exception
      */
     public Database getDatabase() throws Exception {
-        Map databaseConfig = (Map) this.parameters.get(DATABASE);
+        Map databaseConfig = this.paramToMap(this.parameters.get(DATABASE));
+        if (databaseConfig == null) {
+            throw new Exception("Database config not found");
+        }
 
         if (databaseConfig.containsKey(DATABASE_INSTANCE) && databaseConfig.get(DATABASE_INSTANCE) instanceof Database) {
             return (Database) databaseConfig.get(DATABASE_INSTANCE);
         }
 
         Database database = null;
-        String dbms = (String) databaseConfig.get(DATABASE_DBMS);
+        String dbms = this.paramToString(databaseConfig.get(DATABASE_DBMS)).toLowerCase();
 
-        if (dbms.toLowerCase().equals("mongodb")) {
+        if (dbms.equals("mongodb")) {
             database = DatabaseMongo.getInstance();
-        } else if (dbms.toLowerCase().equals("mysql")) {
+        } else if (dbms.equals("mysql")) {
             database = DatabaseMysql.getInstance();
+        } else {
+            throw new Exception("Unsupported DBMS: " + dbms);
         }
 
-        database.setHost((String) databaseConfig.get(DATABASE_HOST));
+        database.setHost(this.paramToString(databaseConfig.get(DATABASE_HOST)));
         database.setPort(this.paramToInt(databaseConfig.get(DATABASE_PORT)));
-        database.setDbName((String) databaseConfig.get(DATABASE_DBNAME));
+        database.setDbName(this.paramToString(databaseConfig.get(DATABASE_DBNAME)));
         if (databaseConfig.containsKey(DATABASE_USERNAME) && databaseConfig.containsKey(DATABASE_PASSWORD)) {
-            database.setUsername((String) databaseConfig.get(DATABASE_USERNAME));
-            database.setPassword((String) databaseConfig.get(DATABASE_PASSWORD));
+            database.setUsername(this.paramToString(databaseConfig.get(DATABASE_USERNAME)));
+            database.setPassword(this.paramToString(databaseConfig.get(DATABASE_PASSWORD)));
         }
         database.connect();
 
-        if (database == null) {
-            throw new Exception("Unsupported DBMS: " + dbms);
-        } else {
-            databaseConfig.put(DATABASE_INSTANCE, database);
-            return database;
-        }
+        databaseConfig.put(DATABASE_INSTANCE, database);
+        return database;
     }
 }

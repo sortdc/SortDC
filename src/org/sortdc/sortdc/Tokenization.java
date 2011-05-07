@@ -91,8 +91,9 @@ public class Tokenization {
      * @param text text to analize
      * @param lang text language
      * @return list of text words/bigrams/trigrams
+     * @throws Exception
      */
-    public List<String> extract(String text) {
+    public List<String> extract(String text) throws Exception {
         List<String> tokens = new ArrayList();
 
         String[] words = this.tokenize(text);
@@ -187,17 +188,15 @@ public class Tokenization {
      *
      * @param words list of words to be stemmed
      * @param lang language used for stemming
+     * @throws Exception
      */
-    private void applyStemming(List<String> words) {
-        try {
-            Class stemClass = Class.forName("org.tartarus.snowball.ext." + this.lang + "Stemmer");
-            SnowballStemmer stemmer = (SnowballStemmer) stemClass.newInstance();
-            for (int i = 0; i < words.size(); i++) {
-                stemmer.setCurrent(words.get(i));
-                stemmer.stem();
-                words.set(i, stemmer.getCurrent());
-            }
-        } catch (Exception e) {
+    private void applyStemming(List<String> words) throws Exception {
+        Class stemClass = Class.forName("org.tartarus.snowball.ext." + this.lang + "Stemmer");
+        SnowballStemmer stemmer = (SnowballStemmer) stemClass.newInstance();
+        for (int i = 0; i < words.size(); i++) {
+            stemmer.setCurrent(words.get(i));
+            stemmer.stem();
+            words.set(i, stemmer.getCurrent());
         }
     }
 
@@ -235,9 +234,9 @@ public class Tokenization {
         Map<String, Integer> occurrences = new HashMap();
         for (String word : words) {
             if (occurrences.containsKey(word)) {
-                occurrences.put(word, 1);
-            } else {
                 occurrences.put(word, ((int) occurrences.get(word)) + 1);
+            } else {
+                occurrences.put(word, 1);
             }
         }
         return occurrences;

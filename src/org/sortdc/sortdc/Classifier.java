@@ -25,24 +25,27 @@ public class Classifier {
      *
      * @param text Text
      * @param category_id Category's id
+     * @throws Exception
      */
-    public void train(String id, String text, String category_id) {
+    public void train(String id, String text, String category_id) throws Exception {
         List<String> words = tokenization.extract(text);
         Map<String, Integer> occurrences = this.tokenization.getOccurrences(words);
 
         Document doc = new Document();
         doc.setName(id);
         doc.setCategoryId(category_id);
-        doc.setOccurrences(occurrences);
-        doc.save();
+        doc.setWordsOccurrences(occurrences);
+        // TODO
+        //doc.save();
     }
 
     /**
      * Determines the category of a new text
      *
      * @param text Text
+     * @throws Exception
      */
-    public Category categorize(String text) {
+    public Category categorize(String text) throws Exception {
         List<String> words = tokenization.extract(text);
         int nb_words = words.size();
         Map<String, Integer> occurrences = this.tokenization.getOccurrences(words);
@@ -51,10 +54,11 @@ public class Classifier {
         Iterator it = occurrences.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry) it.next();
-            
+
             // TODO
             System.out.println(pairs.getKey() + " = " + pairs.getValue());
         }
         // TODO
+        return null;
     }
 }

@@ -9,15 +9,18 @@ public class Main {
         Config config = Config.getInstance();
         try {
             config.loadFile("config/config.yaml");
+            config.applyLogConfig();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            Log.getInstance().add(e.getMessage());
         }
+
+        Log.getInstance().add("Starting...");
 
         try {
             Classifier classifier = config.getClassifier(0);
-            classifier.train("Bonjour je fais des confitures", "lolizator");
+            classifier.train("text1", "Bonjour je fais des confitures", "lolizator");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            Log.getInstance().add(e.getMessage());
         }
     }
 }

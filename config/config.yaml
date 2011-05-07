@@ -1,3 +1,8 @@
+
+log:
+  verbose: true
+  filepath: config/sortdc.log
+
 database:
   dbms: mongodb
   host: localhost
