@@ -89,14 +89,49 @@ public class DatabaseMysql extends Database {
         }
     }
 
+    /**
+     * Finds a document given its id
+     *
+     * @param id document id
+     * @return document matching id
+     * @throws Exception
+     */
     public Document findDocumentById(String id) throws Exception {
-        // TODO
-        return null;
+        return this.findDocumentByParam("id", id);
     }
 
+    /**
+     * Finds a document given its name
+     *
+     * @param name document name
+     * @return document matching name
+     * @throws Exception
+     */
     public Document findDocumentByName(String name) throws Exception {
-        // TODO
-        return null;
+        return this.findDocumentByParam("name", name);
+    }
+
+    /**
+     * Finds a document by a parameter (id or name)
+     *
+     * @param param search parameter
+     * @param name document name
+     * @return document matching name
+     * @throws Exception
+     */
+    private Document findDocumentByParam(String param, String value) throws Exception {
+        Document document = new Document();
+
+        PreparedStatement statement = this.connection.prepareStatement("SELECT id, name FROM categories");
+        ResultSet data = statement.executeQuery();
+        while (data.next()) {
+            DBObject current_doc = cursor.next();
+            document.setId(id);
+            document.setName((String) current_doc.get("name"));
+            document.setCategoryId((String) current_doc.get("category_id"));
+            document.setWordsOccurrences((Map<String, Integer>) current_doc.get("words"));
+        }
+        return document;
     }
 
     /**
