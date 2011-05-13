@@ -261,18 +261,18 @@ public class Config {
         }
         if (classifierConfig.containsKey(CLASSIFIER_NGRAMSCHARS)) {
             List<Integer> ngrams_chars = this.paramToList(classifierConfig.get(CLASSIFIER_NGRAMSCHARS));
-            if(ngrams_chars == null){
+            if (ngrams_chars == null) {
                 ngrams_chars = Arrays.asList(this.paramToInt(classifierConfig.get(CLASSIFIER_NGRAMSCHARS)));
             }
             tokenization.setNgramsChars(ngrams_chars);
         }
         if (classifierConfig.containsKey(CLASSIFIER_NGRAMSWORDS)) {
             List<Integer> ngrams_words = this.paramToList(classifierConfig.get(CLASSIFIER_NGRAMSWORDS));
-            if(ngrams_words == null){
+            if (ngrams_words == null) {
                 ngrams_words = Arrays.asList(this.paramToInt(classifierConfig.get(CLASSIFIER_NGRAMSWORDS)));
             }
             tokenization.setNgramsWords(ngrams_words);
-            
+
         }
         if (classifierConfig.containsKey(CLASSIFIER_STOPWORDS)) {
             tokenization.setStopWords(this.paramToList(classifierConfig.get(CLASSIFIER_STOPWORDS)));

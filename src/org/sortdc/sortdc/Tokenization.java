@@ -81,6 +81,11 @@ public class Tokenization {
         this.words_min_length = length;
     }
 
+    /**
+     * Determines a list of words to exclude from tokenization
+     *
+     * @param stopWords list of words to ignore
+     */
     public void setStopWords(List<String> stopWords) {
         this.stopWords = stopWords;
     }
