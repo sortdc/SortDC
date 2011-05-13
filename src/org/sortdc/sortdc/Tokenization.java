@@ -122,7 +122,6 @@ public class Tokenization {
                 tokens.addAll(this.getCharsNGrams(words, n));
             }
         }
-
         return tokens;
     }
 
