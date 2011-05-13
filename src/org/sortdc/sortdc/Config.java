@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.sortdc.sortdc.database.Database;
@@ -34,8 +35,8 @@ public class Config {
     public static final String CLASSIFIER_WORDS = "words";
     public static final String CLASSIFIER_WORDS_MIN_LENGTH = "words_min_length";
     public static final String CLASSIFIER_STEMMING = "stemming";
-    public static final String CLASSIFIER_BIGRAMS = "bigrams";
-    public static final String CLASSIFIER_TRIGRAMS = "trigrams";
+    public static final String CLASSIFIER_NGRAMSCHARS = "ngrams_chars";
+    public static final String CLASSIFIER_NGRAMSWORDS = "ngrams_words";
     public static final String CLASSIFIER_STOPWORDS = "stopwords";
     public static final String CLASSIFIER_STOPWORDS_FILEPATH = "stopwords_file";
 
@@ -258,11 +259,20 @@ public class Config {
         if (classifierConfig.containsKey(CLASSIFIER_WORDS_MIN_LENGTH)) {
             tokenization.setWordsMinLength(this.paramToInt(classifierConfig.get(CLASSIFIER_WORDS_MIN_LENGTH)));
         }
-        if (classifierConfig.containsKey(CLASSIFIER_BIGRAMS)) {
-            tokenization.setExtractBigrams(this.paramIsTrue(classifierConfig.get(CLASSIFIER_BIGRAMS)));
+        if (classifierConfig.containsKey(CLASSIFIER_NGRAMSCHARS)) {
+            List<Integer> ngrams_chars = this.paramToList(classifierConfig.get(CLASSIFIER_NGRAMSCHARS));
+            if (ngrams_chars == null) {
+                ngrams_chars = Arrays.asList(this.paramToInt(classifierConfig.get(CLASSIFIER_NGRAMSCHARS)));
+            }
+            tokenization.setNgramsChars(ngrams_chars);
         }
-        if (classifierConfig.containsKey(CLASSIFIER_TRIGRAMS)) {
-            tokenization.setExtractTrigrams(this.paramIsTrue(classifierConfig.get(CLASSIFIER_TRIGRAMS)));
+        if (classifierConfig.containsKey(CLASSIFIER_NGRAMSWORDS)) {
+            List<Integer> ngrams_words = this.paramToList(classifierConfig.get(CLASSIFIER_NGRAMSWORDS));
+            if (ngrams_words == null) {
+                ngrams_words = Arrays.asList(this.paramToInt(classifierConfig.get(CLASSIFIER_NGRAMSWORDS)));
+            }
+            tokenization.setNgramsWords(ngrams_words);
+
         }
         if (classifierConfig.containsKey(CLASSIFIER_STOPWORDS)) {
             tokenization.setStopWords(this.paramToList(classifierConfig.get(CLASSIFIER_STOPWORDS)));

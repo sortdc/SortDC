@@ -39,8 +39,6 @@ public class TokenizationTest {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(true);
             instance.disableStemming();
-            instance.setExtractBigrams(false);
-            instance.setExtractTrigrams(false);
             instance.setWordsMinLength(0);
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList("hello", "world", "grand-mere", "fait", "des", "confitures", "avec", "application");
@@ -59,8 +57,6 @@ public class TokenizationTest {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(true);
             instance.enableStemming(this.testLang);
-            instance.setExtractBigrams(false);
-            instance.setExtractTrigrams(false);
             instance.setWordsMinLength(0);
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList("hello", "world", "grand-mer", "fait", "de", "confitur", "avec", "appliqu");
@@ -80,8 +76,6 @@ public class TokenizationTest {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(true);
             instance.disableStemming();
-            instance.setExtractBigrams(false);
-            instance.setExtractTrigrams(false);
             instance.setWordsMinLength(0);
             instance.setStopWords(stopWords);
             List<String> test = instance.extract(this.testText);
@@ -96,14 +90,11 @@ public class TokenizationTest {
     }
 
     @Test
-    public void testExtractBigrams() {
+    public void testExtractCharsNGrams() {
         try {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(false);
-            instance.disableStemming();
-            instance.setExtractBigrams(true);
-            instance.setExtractTrigrams(false);
-            instance.setWordsMinLength(0);
+            instance.setNgramsChars(Arrays.asList(2));
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList(
                     "he", "el", "ll", "lo", "wo", "or", "rl", "ld", "gr", "ra", "an",
@@ -120,20 +111,15 @@ public class TokenizationTest {
     }
 
     @Test
-    public void testExtractTrigrams() {
+    public void testExtractWordsNGrams() {
         try {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(false);
-            instance.disableStemming();
-            instance.setExtractBigrams(false);
-            instance.setExtractTrigrams(true);
-            instance.setWordsMinLength(0);
+            instance.setNgramsWords(Arrays.asList(2));
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList(
-                    "hel", "ell", "llo", "wor", "orl", "rld", "gra", "ran", "and", "nd-",
-                    "d-m", "-me", "mer", "ere", "fai", "ait", "des", "con", "onf", "nfi",
-                    "fit", "itu", "tur", "ure", "res", "ave", "vec", "app", "ppl", "pli",
-                    "lic", "ica", "cat", "ati", "tio", "ion");
+                    "hello world", "world grand-mere", "grand-mere fait", "fait des", "des confitures",
+                    "confitures avec", "avec application");
             assertEquals(expected.size(), test.size());
             for (int i = 0; i < expected.size(); i++) {
                 assertTrue(test.contains(expected.get(i)));
@@ -150,12 +136,14 @@ public class TokenizationTest {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(true);
             instance.enableStemming(this.testLang);
-            instance.setExtractBigrams(true);
-            instance.setExtractTrigrams(true);
+            instance.setNgramsWords(Arrays.asList(2, 3));
+            instance.setNgramsChars(Arrays.asList(2, 3));
             instance.setWordsMinLength(3);
             instance.setStopWords(stopWords);
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList(
+                    "hello world", "world grand-mere", "grand-mere fait", "fait des", "des confitures", "confitures avec", "avec application",
+                    "hello world grand-mere", "world grand-mere fait", "grand-mere fait des", "fait des confitures", "des confitures avec", "confitures avec application",
                     "hello", "world", "grand-mer", "de", "confitur", "appliqu", "he",
                     "el", "ll", "lo", "wo", "or", "rl", "ld", "gr", "ra", "an", "nd",
                     "d-", "-m", "me", "er", "re", "fa", "ai", "it", "de", "es", "co",

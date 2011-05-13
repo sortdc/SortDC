@@ -23,6 +23,6 @@ classifiers:
     
   - name: languages
     words: false
-    bigrams: true
-    trigrams: true
+    ngrams_chars: [2, 3]
+    #ngrams_words: 2
     stopwords: [la, le, les, ce, ces, ça]
