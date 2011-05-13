@@ -51,10 +51,7 @@ public class Classifier {
         Map<String, Integer> occurrences = this.tokenization.getOccurrences(words);
         Map<String, Float> probabilities = new HashMap();
 
-        Iterator it = occurrences.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pairs = (Map.Entry) it.next();
-
+        for (Map.Entry<String, Integer> pairs : occurrences.entrySet()) {
             // TODO
             System.out.println(pairs.getKey() + " = " + pairs.getValue());
         }

@@ -43,8 +43,4 @@ public class Word {
     public static Word findByName(String name) throws Exception {
         return Config.getInstance().getDatabase().findWordByName(name);
     }
-
-    public void save() throws Exception {
-        Config.getInstance().getDatabase().saveWord(this);
-    }
 }

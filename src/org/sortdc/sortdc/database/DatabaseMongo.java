@@ -115,8 +115,4 @@ public class DatabaseMongo extends Database {
         // TODO
         return null;
     }
-
-    public synchronized void saveWord(Word word) throws Exception {
-        // TODO
-    }
 }
