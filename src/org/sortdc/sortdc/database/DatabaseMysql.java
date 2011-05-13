@@ -4,10 +4,14 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.sortdc.sortdc.dao.Category;
+import org.sortdc.sortdc.dao.Document;
+import org.sortdc.sortdc.dao.Word;
 
 public class DatabaseMysql extends Database {
 
@@ -45,9 +49,9 @@ public class DatabaseMysql extends Database {
      * @throws Exception
      */
     public List<Category> findAllCategories() throws Exception {
-        List<Category> categories = new ArrayList();
-        Statement statement = this.connection.createStatement();
-        ResultSet data = statement.executeQuery("SELECT * FROM categories");
+        List<Category> categories = new ArrayList<Category>();
+        PreparedStatement statement = this.connection.prepareStatement("SELECT id, name FROM categories");
+        ResultSet data = statement.executeQuery();
         while (data.next()) {
             Category category = new Category();
             category.setId(data.getString("id"));
@@ -63,21 +67,52 @@ public class DatabaseMysql extends Database {
      * @param category
      * @throws Exception
      */
-    public void saveCategory(Category category) throws Exception {
-        if (category.getId() != null) {
-            PreparedStatement statement = this.connection.prepareStatement("INSERT INTO categories (id, name) VALUES(?,?)");
-            statement.setString(1, category.getId());
+    public synchronized void saveCategory(Category category) throws Exception {
+        if (category.getId() == null) {
+            PreparedStatement statement = this.connection.prepareStatement("INSERT INTO categories (name) VALUES (?)");
             statement.setString(2, category.getName());
             statement.execute();
         } else {
             PreparedStatement statement = this.connection.prepareStatement("UPDATE categories SET name = ? WHERE id = ?");
             statement.setString(1, category.getName());
-            statement.setString(2, category.getId());
+            statement.setInt(2, Integer.parseInt(category.getId()));
             statement.execute();
             if (statement.getUpdateCount() == 0) {
-                category.setId(null);
-                this.saveCategory(category);
+                throw new Exception("Category not found");
             }
         }
+    }
+
+    public Document findDocumentById(String id) throws Exception {
+        // TODO
+        return null;
+    }
+
+    public Document findDocumentByName(String name) throws Exception {
+        // TODO
+        return null;
+    }
+
+    public synchronized void saveDocument(Document document) throws Exception {
+        // TODO
+    }
+
+    public Word findWordById(String id) throws Exception {
+        // TODO
+        return null;
+    }
+
+    public Word findWordByName(String name) throws Exception {
+        // TODO
+        return null;
+    }
+
+    public List<Word> findWordByNames(Set<String> names) throws Exception {
+        // TODO
+        return null;
+    }
+
+    public synchronized void saveWord(Word word) throws Exception {
+        // TODO
     }
 }

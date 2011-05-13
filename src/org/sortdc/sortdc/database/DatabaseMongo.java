@@ -8,7 +8,10 @@ import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.sortdc.sortdc.dao.Category;
+import org.sortdc.sortdc.dao.Document;
+import org.sortdc.sortdc.dao.Word;
 
 public class DatabaseMongo extends Database {
 
@@ -72,7 +75,7 @@ public class DatabaseMongo extends Database {
      * @param category
      * @throws Exception
      */
-    public void saveCategory(Category category) throws Exception {
+    public synchronized void saveCategory(Category category) throws Exception {
         DBCollection collection = this.db.getCollection("categories");
         DBObject obj = new BasicDBObject();
         obj.put("name", category.getName());
@@ -82,5 +85,38 @@ public class DatabaseMongo extends Database {
             obj.put("_id", category.getId());
             collection.save(obj);
         }
+    }
+
+    public Document findDocumentById(String id) throws Exception {
+        // TODO
+        return null;
+    }
+
+    public Document findDocumentByName(String name) throws Exception {
+        // TODO
+        return null;
+    }
+
+    public synchronized void saveDocument(Document document) throws Exception {
+        // TODO
+    }
+
+    public Word findWordById(String id) throws Exception {
+        // TODO
+        return null;
+    }
+
+    public Word findWordByName(String name) throws Exception {
+        // TODO
+        return null;
+    }
+
+    public List<Word> findWordByNames(Set<String> names) throws Exception {
+        // TODO
+        return null;
+    }
+
+    public synchronized void saveWord(Word word) throws Exception {
+        // TODO
     }
 }

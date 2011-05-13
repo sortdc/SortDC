@@ -1,6 +1,7 @@
 package org.sortdc.sortdc.dao;
 
 import java.util.Map;
+import org.sortdc.sortdc.Config;
 
 public class Document {
 
@@ -41,13 +42,15 @@ public class Document {
         this.words = words;
     }
 
-    public static Document findById(String id) {
-        // TODO
-        return null;
+    public static Document findById(String id) throws Exception {
+        return Config.getInstance().getDatabase().findDocumentById(id);
     }
 
-    public static Document findByName(String name) {
-        // TODO
-        return null;
+    public static Document findByName(String name) throws Exception {
+        return Config.getInstance().getDatabase().findDocumentByName(name);
+    }
+
+    public void save() throws Exception {
+        Config.getInstance().getDatabase().saveDocument(this);
     }
 }
