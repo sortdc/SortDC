@@ -13,8 +13,8 @@ public class Tokenization {
     private boolean extract_words = true;
     private boolean apply_stemming = false;
     private String lang;
-    private boolean extract_bigrams = false;
-    private boolean extract_trigrams = false;
+    private List<Integer> ngrams_words = null;
+    private List<Integer> ngrams_chars = null;
     private int words_min_length = 2;
     private List<String> stopWords;
 
@@ -52,23 +52,23 @@ public class Tokenization {
     }
 
     /**
-     * extract_bigrams parameter setter.
-     * If set to true, extract() method will add each text bigrams to the returned list.
+     * ngrams_chars parameter setter.
+     * Indicates the n letters words parts to extract
      *
-     * @param set
+     * @param ngrams_chars list of ngrams to extract
      */
-    public void setExtractBigrams(boolean set) {
-        this.extract_bigrams = set;
+    public void setNgramsChars(List<Integer> ngrams_chars) {
+        this.ngrams_chars = ngrams_chars;
     }
 
     /**
-     * extract_trigrams setter.
-     * If set to true, extract() method will add each text trigrams to the returned list.
-     * 
-     * @param set
+     * ngrams_words parameter setter.
+     * Indicates the n words parts of the text to extract
+     *
+     * @param ngrams_chars list of words ngrams to extract
      */
-    public void setExtractTrigrams(boolean set) {
-        this.extract_trigrams = set;
+    public void setNgramsWords(List<Integer> ngrams_words) {
+        this.ngrams_words = ngrams_words;
     }
 
     /**
@@ -94,7 +94,7 @@ public class Tokenization {
      * @throws Exception
      */
     public List<String> extract(String text) throws Exception {
-        List<String> tokens = new ArrayList();
+        List<String> tokens = new ArrayList<String>();
 
         String[] words = this.tokenize(text);
 
@@ -107,12 +107,15 @@ public class Tokenization {
             }
         }
 
-        if (this.extract_bigrams) {
-            tokens.addAll(this.getBigrams(words));
+        if (this.ngrams_words != null) {
+            for (Integer n : this.ngrams_words) {
+                tokens.addAll(this.getWordsNGrams(words, n));
+            }
         }
-
-        if (this.extract_trigrams) {
-            tokens.addAll(this.getTrigrams(words));
+        if (this.ngrams_chars != null) {
+            for (Integer n : this.ngrams_chars) {
+                tokens.addAll(this.getCharsNGrams(words, n));
+            }
         }
 
         return tokens;
@@ -141,44 +144,42 @@ public class Tokenization {
     }
 
     /**
-     * Separates a word into x letters tokens and add them to a list.
+     * Cuts words into n letters parts
      *
-     * @param word word to analize
-     * @param list list in which tokens will be added
-     * @param parts_length tokens length
+     * @param words an array in wich words are stored
+     * @param n grams length
+     * @return list of n letters parts of each words
      */
-    private void getWordParts(String word, List<String> list, int parts_length) {
-        int array_size = (word.length() - parts_length + 1 > 0 ? word.length() - parts_length + 1 : 0);
+    private List<String> getCharsNGrams(String[] words, int n) {
+        List<String> grams = new ArrayList<String>();
 
-        for (int i = 0; i < array_size; i++) {
-            list.add(word.substring(i, i + parts_length));
-        }
-    }
+        for (String w : words) {
+            int array_size = (w.length() - n + 1 > 0 ? w.length() - n + 1 : 0);
 
-    /**
-     * Separates words in a list of words into 2 letters tokens and returns them
-     * Uses getWordParts() method.
-     *
-     * @param words words to analize
-     */
-    private List<String> getBigrams(String[] words) {
-        List<String> grams = new ArrayList();
-        for (String word : words) {
-            this.getWordParts(word, grams, 2);
+            for (int i = 0; i < array_size; i++) {
+                grams.add(w.substring(i, i + n));
+            }
         }
+
         return grams;
     }
 
     /**
-     * Separates words in a list of words into 3 letters tokens and returns them
-     * Uses getWordParts() method.
+     * Cuts a text into n words parts
      *
-     * @param words words to analize
+     * @param words an array in wich words are stored
+     * @param n grams length
+     * @return list of n words parts of the text
      */
-    private List<String> getTrigrams(String[] words) {
-        List<String> grams = new ArrayList();
-        for (String word : words) {
-            this.getWordParts(word, grams, 3);
+    private List<String> getWordsNGrams(String[] words, int n) {
+        List<String> grams = new ArrayList<String>();
+
+        for (int i = 0; i < words.length - n + 1; i++) {
+            String gram = words[i];
+            for (int k = 1; k < n; k++) {
+                gram += " " + words[i + k];
+            }
+            grams.add(gram);
         }
         return grams;
     }
@@ -231,7 +232,7 @@ public class Tokenization {
     }
 
     public Map<String, Integer> getOccurrences(List<String> words) {
-        Map<String, Integer> occurrences = new HashMap();
+        Map<String, Integer> occurrences = new HashMap<String, Integer>();
         for (String word : words) {
             if (occurrences.containsKey(word)) {
                 occurrences.put(word, ((int) occurrences.get(word)) + 1);
