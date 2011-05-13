@@ -9,9 +9,6 @@ public class Word {
     private String name;
     private Map<String, Integer> occurences;
 
-    private Word() {
-    }
-
     public String getId() {
         return this.id;
     }
