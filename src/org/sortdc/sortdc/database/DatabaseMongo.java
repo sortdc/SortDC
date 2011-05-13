@@ -7,7 +7,9 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.dao.Document;
@@ -79,7 +81,7 @@ public class DatabaseMongo extends Database {
         DBCollection collection = this.db.getCollection("categories");
         DBObject obj = new BasicDBObject();
         obj.put("name", category.getName());
-        if (category.getId() != null) {
+        if (category.getId() == null) {
             collection.insert(obj);
         } else {
             obj.put("_id", category.getId());
@@ -87,36 +89,205 @@ public class DatabaseMongo extends Database {
         }
     }
 
+    /**
+     * Finds a document given its id
+     *
+     * @param id document id
+     * @return document matching id
+     * @throws Exception
+     */
     public Document findDocumentById(String id) throws Exception {
-        // TODO
-        return null;
+        Document document = new Document();
+
+        DBCollection collection = this.db.getCollection("documents");
+        DBObject query = new BasicDBObject();
+        query.put("_id", id);
+
+        DBCursor cursor = collection.find(query);
+
+        if (cursor.hasNext()) {
+            DBObject current_doc = cursor.next();
+            document.setId(id);
+            document.setName((String) current_doc.get("name"));
+            document.setCategoryId((String) current_doc.get("category_id"));
+            document.setWordsOccurrences((Map<String, Integer>) current_doc.get("words"));
+        }
+        return document;
     }
 
+    /**
+     * Finds a document given its name
+     *
+     * @param name document name
+     * @return document matching name
+     * @throws Exception
+     */
     public Document findDocumentByName(String name) throws Exception {
-        // TODO
-        return null;
+        Document document = new Document();
+
+        DBCollection collection = this.db.getCollection("documents");
+        DBObject query = new BasicDBObject();
+        query.put("name", name);
+
+        DBCursor cursor = collection.find(query);
+
+        if (cursor.hasNext()) {
+            DBObject current_doc = cursor.next();
+            document.setId((String) current_doc.get("_id"));
+            document.setName(name);
+            document.setCategoryId((String) current_doc.get("category_id"));
+            document.setWordsOccurrences((Map<String, Integer>) current_doc.get("words"));
+        }
+        return document;
     }
 
+    private void deleteDocumentWordsOcurrences() {
+    }
+
+    /**
+     * Saves a new document or updates an existing one
+     *
+     * @param document document to save / update
+     * @throws Exception
+     */
     public synchronized void saveDocument(Document document) throws Exception {
-        // TODO
+        if (document.getId() == null) {
+            String category_id = document.getCategoryId();
+            Map<String, Integer> doc_occurences = document.getWordsOccurrences();
+
+            for (Map.Entry<String, Integer> occurences : doc_occurences.entrySet()) {
+                // TOREPLACE :
+                Word word = this.findWordByName(occurences.getKey());
+                for (Map.Entry<String, Integer> word_occurences : word.getOccurrencesByCategory().entrySet()) {
+                    if (word_occurences.getKey().equals(category_id)) {
+                        word_occurences.setValue(word_occurences.getValue() - occurences.getValue());
+                        // TODO
+                    }
+                }
+            }
+        }
+        DBCollection collection = this.db.getCollection("documents");
+        DBObject obj = new BasicDBObject();
+        obj.put("name", document.getName());
+        obj.put("category_id", document.getCategoryId());
+        obj.put("words", document.getWordsOccurrences());
+
+        if (document.getId() == null) {
+            collection.insert(obj);
+        } else {
+            obj.put("_id", document.getId());
+            collection.save(obj);
+        }
+
+        if (document.getId() == null) {
+            for (Map.Entry<String, Integer> doc_occurences : document.getWordsOccurrences().entrySet()) {
+                Word word = this.findWordByName((String) doc_occurences.getKey());
+
+                for (Map.Entry<String, Integer> word_occurences : word.getOccurrencesByCategory().entrySet()) {
+                    if (word_occurences.getKey().equals(document.getCategoryId())) {
+                        //occurences += doc_occurences.getValue();
+                        //word_occurences.setValue(occurences);
+                    }
+                }
+            }
+        }
     }
 
+    /**
+     * Finds a word given its id
+     *
+     * @param id word id
+     * @return word matching id
+     * @throws Exception
+     */
     public Word findWordById(String id) throws Exception {
-        // TODO
-        return null;
+        Word word = new Word();
+
+        DBCollection collection = this.db.getCollection("words");
+        DBObject query = new BasicDBObject();
+        query.put("_id", id);
+
+        DBCursor cursor = collection.find(query);
+
+        if (cursor.hasNext()) {
+            DBObject current_doc = cursor.next();
+            word.setId(id);
+            word.setName((String) current_doc.get("name"));
+            word.setOccurrencesByCategory((Map<String, Integer>) current_doc.get("occurences"));
+        }
+        return word;
     }
 
+    /**
+     * find a word given its name
+     *
+     * @param name word name
+     * @return word matching name
+     * @throws Exception
+     */
     public Word findWordByName(String name) throws Exception {
-        // TODO
-        return null;
+        Word word = new Word();
+
+        DBCollection collection = this.db.getCollection("words");
+        DBObject query = new BasicDBObject();
+        query.put("name", name);
+
+        DBCursor cursor = collection.find(query);
+
+        if (cursor.hasNext()) {
+            DBObject current_doc = cursor.next();
+            word.setId((String) current_doc.get("_id"));
+            word.setName(name);
+            word.setOccurrencesByCategory((Map<String, Integer>) current_doc.get("occurences"));
+        }
+        return word;
     }
 
+    /**
+     * find a list of words given a set of names
+     *
+     * @param names set of names
+     * @return list of words matching names
+     * @throws Exception
+     */
     public List<Word> findWordByNames(Set<String> names) throws Exception {
-        // TODO
-        return null;
+        List<Word> words = new ArrayList<Word>();
+
+        DBCollection collection = this.db.getCollection("words");
+        DBObject query = new BasicDBObject();
+        query.put("name", new BasicDBObject("$in", names.toArray()));
+
+        DBCursor cursor = collection.find(query);
+
+        while (cursor.hasNext()) {
+            Word word = new Word();
+            DBObject current_word = cursor.next();
+            word.setId((String) current_word.get("_id"));
+            word.setName((String) current_word.get("name"));
+            word.setOccurrencesByCategory((Map<String, Integer>) current_word.get("occurences"));
+
+            words.add(word);
+        }
+        return words;
     }
 
+    /**
+     * Saves a new word or update an existing one
+     *
+     * @param word word to save / update
+     * @throws Exception
+     */
     public synchronized void saveWord(Word word) throws Exception {
-        // TODO
+        DBCollection collection = this.db.getCollection("words");
+        DBObject obj = new BasicDBObject();
+        obj.put("name", word.getName());
+        obj.put("occurences", word.getOccurrencesByCategory());
+
+        if (word.getId() == null) {
+            collection.insert(obj);
+        } else {
+            obj.put("_id", word.getId());
+            collection.save(obj);
+        }
     }
 }
