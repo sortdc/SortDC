@@ -65,4 +65,21 @@ public class Log {
             System.out.println(e.getMessage());
         }
     }
+
+    /**
+     * Adds an Exception (message + stacktrace) to the log file and displays it if verbose mode is enabled
+     *
+     * @param line
+     */
+    public void add(Exception e) {
+        String message = e.getMessage();
+        try {
+            StackTraceElement[] elements = e.getStackTrace();
+            for (StackTraceElement element : elements) {
+                message += "\n    " + element;
+            }
+        } catch (Exception ex) {
+        }
+        this.add(message);
+    }
 }
