@@ -90,6 +90,55 @@ public class DatabaseMysql extends Database {
     }
 
     /**
+     * Deletes a category given its id
+     * 
+     * @param category_id
+     * @throws Exception
+     */
+    public void deleteCategoryById(String category_id) throws Exception {
+        this.deleteCategoryByParam("id", category_id);
+    }
+
+    /**
+     * Deletes a category given its name
+     *
+     * @param category_id
+     * @throws Exception
+     */
+    public void deleteCategoryByName(String category_name) throws Exception {
+        this.deleteCategoryByParam("name", category_name);
+    }
+
+    /**
+     * Deletes a category by a parameter (id or name)
+     *
+     * @param param search parameter
+     * @param value id or name
+     * @throws Exception
+     */
+    private void deleteCategoryByParam(String param, String value) throws Exception {
+        PreparedStatement statement;
+        ResultSet data;
+        int category_id;
+        if (param.equals("name")) {
+            statement = this.connection.prepareStatement("SELECT id FROM category WHERE name = ? LIMIT ");
+            statement.setString(1, value);
+            data = statement.executeQuery();
+            if (data.next()) {
+                category_id = data.getInt("id");
+            } else {
+                throw new Exception("Category not found");
+            }
+        } else {
+            category_id = Integer.parseInt(value);
+        }
+
+        statement = this.connection.prepareStatement("DELETE FROM categories WHERE id = ?");
+        statement.setInt(1, category_id);
+        statement.execute();
+    }
+
+    /**
      * Finds a document given its id
      *
      * @param id document id
@@ -183,6 +232,10 @@ public class DatabaseMysql extends Database {
             } else {
 
                 this.deleteDocumentWordsOccurences(document_id);
+
+                statement = this.connection.prepareStatement("DELETE FROM documents_words WHERE document_id = ?");
+                statement.setInt(1, document_id);
+                statement.execute();
 
                 statement = this.connection.prepareStatement("UPDATE documents SET name = ?, category_id = ? WHERE id = ?");
                 statement.setString(1, document.getName());
@@ -281,7 +334,7 @@ public class DatabaseMysql extends Database {
     }
 
     /**
-     * Deletes words' occurrences of a document
+     * Deletes words' occurrences of a document in a category
      * 
      * @param document_id
      * @param category_id
@@ -309,8 +362,53 @@ public class DatabaseMysql extends Database {
 
         statement = this.connection.prepareStatement("DELETE FROM categories_words WHERE occurrences = 0");
         statement.execute();
+    }
 
-        statement = this.connection.prepareStatement("DELETE FROM documents_words WHERE document_id = ?");
+    /**
+     * Deletes a document given its id
+     *
+     * @param document_id
+     * @throws Exception
+     */
+    public void deleteDocumentById(String document_id) throws Exception {
+        this.deleteDocumentByParam("id", document_id);
+    }
+
+    /**
+     * Deletes a document given its name
+     *
+     * @param document_name
+     * @throws Exception
+     */
+    public void deleteDocumentByName(String document_name) throws Exception {
+        this.deleteDocumentByParam("name", document_name);
+    }
+
+    /**
+     * Deletes a document by a parameter (id or name)
+     *
+     * @param param search parameter
+     * @param value id or name
+     * @throws Exception
+     */
+    private void deleteDocumentByParam(String param, String value) throws Exception {
+        PreparedStatement statement;
+        ResultSet data;
+        int document_id;
+        if (param.equals("name")) {
+            statement = this.connection.prepareStatement("SELECT id FROM documents WHERE name = ? LIMIT ");
+            statement.setString(1, value);
+            data = statement.executeQuery();
+            if (data.next()) {
+                document_id = data.getInt("id");
+            } else {
+                throw new Exception("Document not found");
+            }
+        } else {
+            document_id = Integer.parseInt(value);
+        }
+
+        statement = this.connection.prepareStatement("DELETE FROM documents WHERE id = ?");
         statement.setInt(1, document_id);
         statement.execute();
     }
@@ -341,7 +439,7 @@ public class DatabaseMysql extends Database {
      * Finds a word by a parameter (id or name)
      *
      * @param param search parameter
-     * @param name word name
+     * @param value id or name
      * @return word matching name
      * @throws Exception
      */

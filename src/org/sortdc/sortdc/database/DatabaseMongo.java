@@ -90,6 +90,37 @@ public class DatabaseMongo extends Database {
     }
 
     /**
+     * Deletes a category given its id
+     *
+     * @param category_id
+     * @throws Exception
+     */
+    public void deleteCategoryById(String category_id) throws Exception {
+        this.deleteCategoryByParam("id", category_id);
+    }
+
+    /**
+     * Deletes a category given its name
+     *
+     * @param category_id
+     * @throws Exception
+     */
+    public void deleteCategoryByName(String category_name) throws Exception {
+        this.deleteCategoryByParam("name", category_name);
+    }
+
+    /**
+     * Deletes a category by a parameter (id or name)
+     *
+     * @param param search parameter
+     * @param value id or name
+     * @throws Exception
+     */
+    private void deleteCategoryByParam(String param, String value) throws Exception {
+        // TODO
+    }
+
+    /**
      * Finds a document given its id
      *
      * @param id document id
@@ -140,9 +171,6 @@ public class DatabaseMongo extends Database {
         return document;
     }
 
-    private void deleteDocumentWordsOcurrences() {
-    }
-
     /**
      * Saves a new document or updates an existing one
      *
@@ -190,6 +218,46 @@ public class DatabaseMongo extends Database {
                 }
             }
         }
+    }
+
+    /**
+     * Deletes words' occurrences of a document in a category
+     *
+     * @throws Exception
+     */
+    private void deleteDocumentWordsOcurrences() {
+        // TODO
+    }
+
+    /**
+     * Deletes a document given its id
+     *
+     * @param document_id
+     * @throws Exception
+     */
+    public void deleteDocumentById(String document_id) throws Exception {
+        this.deleteDocumentByParam("id", document_id);
+    }
+
+    /**
+     * Deletes a document given its name
+     *
+     * @param document_name
+     * @throws Exception
+     */
+    public void deleteDocumentByName(String document_name) throws Exception {
+        this.deleteDocumentByParam("name", document_name);
+    }
+
+    /**
+     * Deletes a document by a parameter (id or name)
+     *
+     * @param param search parameter
+     * @param value id or name
+     * @throws Exception
+     */
+    private void deleteDocumentByParam(String param, String value) throws Exception {
+        // TODO
     }
 
     /**
