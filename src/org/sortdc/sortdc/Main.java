@@ -1,7 +1,6 @@
 package org.sortdc.sortdc;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 
 public class Main {
 
@@ -14,16 +13,16 @@ public class Main {
             config.loadFile("config/config.yaml");
             config.applyLogConfig();
         } catch (Exception e) {
-            Log.getInstance().add(e.getMessage());
+            Log.getInstance().add(e);
         }
 
         Log.getInstance().add("Starting...");
 
         try {
-            Classifier classifier = config.getClassifier(0);
-            classifier.train("text1", "Bonjour je fais des confitures", "lolizator");
+            Map<String, Classifier> classifiers = config.getClassifiers();
+            classifiers.get("languages").train("text1", "Bonjour je fais des confitures", "lolizator");
         } catch (Exception e) {
-            Log.getInstance().add(e.getMessage());
+            Log.getInstance().add(e);
         }
     }
 }

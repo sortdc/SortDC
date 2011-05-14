@@ -4,11 +4,11 @@ import com.esotericsoftware.yamlbeans.YamlReader;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.sortdc.sortdc.database.Database;
@@ -19,18 +19,18 @@ public class Config {
 
     private static Config instance;
     private Map parameters;
+    private Map<String, Classifier> classifiers = new HashMap<String, Classifier>();
     public static final String LOG = "log";
     public static final String LOG_VERBOSE = "verbose";
     public static final String LOG_FILEPATH = "filepath";
-    public static final String DATABASE = "database";
-    public static final String DATABASE_DBMS = "dbms";
-    public static final String DATABASE_HOST = "host";
-    public static final String DATABASE_PORT = "port";
-    public static final String DATABASE_DBNAME = "dbname";
-    public static final String DATABASE_USERNAME = "username";
-    public static final String DATABASE_PASSWORD = "password";
-    public static final String DATABASE_INSTANCE = "instance";
     public static final String CLASSIFIERS_LIST = "classifiers";
+    public static final String CLASSIFIERS_DATABASE = "database";
+    public static final String CLASSIFIERS_DATABASE_DBMS = "dbms";
+    public static final String CLASSIFIERS_DATABASE_HOST = "host";
+    public static final String CLASSIFIERS_DATABASE_PORT = "port";
+    public static final String CLASSIFIERS_DATABASE_DBNAME = "dbname";
+    public static final String CLASSIFIERS_DATABASE_USERNAME = "username";
+    public static final String CLASSIFIERS_DATABASE_PASSWORD = "password";
     public static final String CLASSIFIER_LANG = "lang";
     public static final String CLASSIFIER_WORDS = "words";
     public static final String CLASSIFIER_WORDS_MIN_LENGTH = "words_min_length";
@@ -68,41 +68,6 @@ public class Config {
             this.parameters = (Map) params;
         } else {
             throw new Exception("Invalid config file");
-        }
-
-        this.loadStopWords();
-    }
-
-    /**
-     * Loads stopwords for each classifier from stopwords files
-     *
-     * @throws Exception
-     */
-    private void loadStopWords() throws Exception {
-        List<Map> classifiers = (List) this.get(CLASSIFIERS_LIST);
-        if (classifiers != null) {
-            for (Map classifier : classifiers) {
-                String stopwordsFilepath = (String) classifier.get(CLASSIFIER_STOPWORDS_FILEPATH);
-                if (stopwordsFilepath == null) {
-                    continue;
-                }
-                List<String> stopWords = new ArrayList();
-                try {
-                    InputStream is = new FileInputStream(stopwordsFilepath);
-                    InputStreamReader isr = new InputStreamReader(is);
-                    BufferedReader br = new BufferedReader(isr);
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        stopWords.add(line.trim());
-                    }
-                    br.close();
-                } catch (IOException e) {
-                    Log.getInstance().add(e.getMessage());
-                }
-                if (stopWords.size() != 0 || classifier.get(CLASSIFIER_STOPWORDS) == null) {
-                    classifier.put(CLASSIFIER_STOPWORDS, stopWords);
-                }
-            }
         }
     }
 
@@ -224,102 +189,121 @@ public class Config {
     }
 
     /**
-     * Creates an instance of Classifier and configures it
+     * Creates Classifiers' instances and configures it
      *
-     * @param id Classifier's id
-     * @return Classifier instance
+     * @return Classifiers' instances
      * @throws Exception
      */
-    public Classifier getClassifier(int id) throws Exception {
-        List classifiers = this.paramToList(this.get(Config.CLASSIFIERS_LIST));
-        if (classifiers == null || id >= classifiers.size()) {
-            throw new Exception("Classifier not found");
+    public synchronized Map<String, Classifier> getClassifiers() throws Exception {
+        if (!this.classifiers.isEmpty()) {
+            return this.classifiers;
         }
 
-        Map classifierConfig = this.paramToMap(classifiers.get(id));
-        if (classifierConfig == null) {
+        Map<String, Map> classifiersConfig;
+        try {
+            classifiersConfig = this.paramToMap(this.get(Config.CLASSIFIERS_LIST));
+        } catch (Exception e) {
             throw new Exception("Invalid classifier config");
         }
 
-        Tokenization tokenization = new Tokenization();
-        if (classifierConfig.containsKey(CLASSIFIER_WORDS)) {
-            tokenization.setExtractWords(this.paramIsTrue(classifierConfig.get(CLASSIFIER_WORDS)));
-        }
-        if (classifierConfig.containsKey(CLASSIFIER_STEMMING)) {
-            if (this.paramIsTrue(classifierConfig.get(CLASSIFIER_STEMMING))) {
-                if (classifierConfig.containsKey(CLASSIFIER_LANG)) {
-                    tokenization.enableStemming(this.paramToString(classifierConfig.get(CLASSIFIER_LANG)));
+        for (Map.Entry<String, Map> classifierEntry : classifiersConfig.entrySet()) {
+            String classifier_name = classifierEntry.getKey();
+            Map classifierConfig = classifierEntry.getValue();
+
+            Tokenization tokenization = new Tokenization();
+            if (classifierConfig.containsKey(CLASSIFIER_WORDS)) {
+                tokenization.setExtractWords(this.paramIsTrue(classifierConfig.get(CLASSIFIER_WORDS)));
+            }
+            if (classifierConfig.containsKey(CLASSIFIER_STEMMING)) {
+                if (this.paramIsTrue(classifierConfig.get(CLASSIFIER_STEMMING))) {
+                    if (classifierConfig.containsKey(CLASSIFIER_LANG)) {
+                        tokenization.enableStemming(this.paramToString(classifierConfig.get(CLASSIFIER_LANG)));
+                    } else {
+                        throw new Exception("You must define a language for stemming");
+                    }
                 } else {
-                    throw new Exception("You must define a language for stemming");
+                    tokenization.disableStemming();
                 }
+            }
+            if (classifierConfig.containsKey(CLASSIFIER_WORDS_MIN_LENGTH)) {
+                tokenization.setWordsMinLength(this.paramToInt(classifierConfig.get(CLASSIFIER_WORDS_MIN_LENGTH)));
+            }
+            if (classifierConfig.containsKey(CLASSIFIER_NGRAMSCHARS)) {
+                List<Integer> ngrams_chars = this.paramToList(classifierConfig.get(CLASSIFIER_NGRAMSCHARS));
+                if (ngrams_chars == null) {
+                    ngrams_chars = Arrays.asList(this.paramToInt(classifierConfig.get(CLASSIFIER_NGRAMSCHARS)));
+                } else {
+                    for (int i = ngrams_chars.size() - 1; i >= 0; i--) {
+                        ngrams_chars.set(i, this.paramToInt(ngrams_chars.get(i)));
+                    }
+                }
+                tokenization.setNgramsChars(ngrams_chars);
+            }
+            if (classifierConfig.containsKey(CLASSIFIER_NGRAMSWORDS)) {
+                List<Integer> ngrams_words = this.paramToList(classifierConfig.get(CLASSIFIER_NGRAMSWORDS));
+                if (ngrams_words == null) {
+                    ngrams_words = Arrays.asList(this.paramToInt(classifierConfig.get(CLASSIFIER_NGRAMSWORDS)));
+                } else {
+                    for (int i = ngrams_words.size() - 1; i >= 0; i--) {
+                        ngrams_words.set(i, this.paramToInt(ngrams_words.get(i)));
+                    }
+                }
+                tokenization.setNgramsWords(ngrams_words);
+            }
+
+            if (classifierConfig.containsKey(CLASSIFIER_STOPWORDS_FILEPATH)) {
+                String stopwordsFilepath = this.paramToString(classifierConfig.get(CLASSIFIER_STOPWORDS_FILEPATH));
+                List<String> stopWords = new ArrayList();
+                InputStream is = new FileInputStream(stopwordsFilepath);
+                InputStreamReader isr = new InputStreamReader(is);
+                BufferedReader br = new BufferedReader(isr);
+                String line;
+                while ((line = br.readLine()) != null) {
+                    stopWords.add(line.trim());
+                }
+                br.close();
+                if (stopWords.size() != 0) {
+                    classifierConfig.put(CLASSIFIER_STOPWORDS, stopWords);
+                }
+            }
+            if (classifierConfig.containsKey(CLASSIFIER_STOPWORDS)) {
+                tokenization.setStopWords(this.paramToList(classifierConfig.get(CLASSIFIER_STOPWORDS)));
+            }
+
+
+            Map databaseConfig = this.paramToMap(classifierConfig.get(CLASSIFIERS_DATABASE));
+            if (databaseConfig == null) {
+                throw new Exception("Database config not found");
+            }
+
+            Database database;
+            String dbms = this.paramToString(databaseConfig.get(CLASSIFIERS_DATABASE_DBMS)).toLowerCase();
+
+            if (dbms.equals("mongodb")) {
+                database = new DatabaseMongo();
+            } else if (dbms.equals("mysql")) {
+                database = new DatabaseMysql();
             } else {
-                tokenization.disableStemming();
+                throw new Exception("Unsupported DBMS: " + dbms);
             }
-        }
-        if (classifierConfig.containsKey(CLASSIFIER_WORDS_MIN_LENGTH)) {
-            tokenization.setWordsMinLength(this.paramToInt(classifierConfig.get(CLASSIFIER_WORDS_MIN_LENGTH)));
-        }
-        if (classifierConfig.containsKey(CLASSIFIER_NGRAMSCHARS)) {
-            List<Integer> ngrams_chars = this.paramToList(classifierConfig.get(CLASSIFIER_NGRAMSCHARS));
-            if (ngrams_chars == null) {
-                ngrams_chars = Arrays.asList(this.paramToInt(classifierConfig.get(CLASSIFIER_NGRAMSCHARS)));
+
+            if (databaseConfig.containsKey(CLASSIFIERS_DATABASE_HOST)) {
+                database.setHost(this.paramToString(databaseConfig.get(CLASSIFIERS_DATABASE_HOST)));
             }
-            tokenization.setNgramsChars(ngrams_chars);
-        }
-        if (classifierConfig.containsKey(CLASSIFIER_NGRAMSWORDS)) {
-            List<Integer> ngrams_words = this.paramToList(classifierConfig.get(CLASSIFIER_NGRAMSWORDS));
-            if (ngrams_words == null) {
-                ngrams_words = Arrays.asList(this.paramToInt(classifierConfig.get(CLASSIFIER_NGRAMSWORDS)));
+            if (databaseConfig.containsKey(CLASSIFIERS_DATABASE_PORT)) {
+                database.setPort(this.paramToInt(databaseConfig.get(CLASSIFIERS_DATABASE_PORT)));
             }
-            tokenization.setNgramsWords(ngrams_words);
+            database.setDbName(this.paramToString(databaseConfig.get(CLASSIFIERS_DATABASE_DBNAME)));
+            if (databaseConfig.containsKey(CLASSIFIERS_DATABASE_USERNAME) && databaseConfig.containsKey(CLASSIFIERS_DATABASE_PASSWORD)) {
+                database.setUsername(this.paramToString(databaseConfig.get(CLASSIFIERS_DATABASE_USERNAME)));
+                database.setPassword(this.paramToString(databaseConfig.get(CLASSIFIERS_DATABASE_PASSWORD)));
+            }
+            database.connect();
 
+
+            Classifier classifier = new Classifier(tokenization, database);
+            this.classifiers.put(classifier_name, classifier);
         }
-        if (classifierConfig.containsKey(CLASSIFIER_STOPWORDS)) {
-            tokenization.setStopWords(this.paramToList(classifierConfig.get(CLASSIFIER_STOPWORDS)));
-        }
-
-        Classifier classifier = new Classifier(tokenization);
-
-        return classifier;
-    }
-
-    /**
-     * Creates an instance of Database if doesn't exist, else returns existing instance
-     *
-     * @return
-     * @throws Exception
-     */
-    public Database getDatabase() throws Exception {
-        Map databaseConfig = this.paramToMap(this.parameters.get(DATABASE));
-        if (databaseConfig == null) {
-            throw new Exception("Database config not found");
-        }
-
-        if (databaseConfig.containsKey(DATABASE_INSTANCE) && databaseConfig.get(DATABASE_INSTANCE) instanceof Database) {
-            return (Database) databaseConfig.get(DATABASE_INSTANCE);
-        }
-
-        Database database = null;
-        String dbms = this.paramToString(databaseConfig.get(DATABASE_DBMS)).toLowerCase();
-
-        if (dbms.equals("mongodb")) {
-            database = DatabaseMongo.getInstance();
-        } else if (dbms.equals("mysql")) {
-            database = DatabaseMysql.getInstance();
-        } else {
-            throw new Exception("Unsupported DBMS: " + dbms);
-        }
-
-        database.setHost(this.paramToString(databaseConfig.get(DATABASE_HOST)));
-        database.setPort(this.paramToInt(databaseConfig.get(DATABASE_PORT)));
-        database.setDbName(this.paramToString(databaseConfig.get(DATABASE_DBNAME)));
-        if (databaseConfig.containsKey(DATABASE_USERNAME) && databaseConfig.containsKey(DATABASE_PASSWORD)) {
-            database.setUsername(this.paramToString(databaseConfig.get(DATABASE_USERNAME)));
-            database.setPassword(this.paramToString(databaseConfig.get(DATABASE_PASSWORD)));
-        }
-        database.connect();
-
-        databaseConfig.put(DATABASE_INSTANCE, database);
-        return database;
+        return this.classifiers;
     }
 }

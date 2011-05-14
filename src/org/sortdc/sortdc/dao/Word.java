@@ -1,7 +1,6 @@
 package org.sortdc.sortdc.dao;
 
 import java.util.Map;
-import org.sortdc.sortdc.Config;
 
 public class Word {
 
@@ -31,13 +30,5 @@ public class Word {
 
     public void setOccurrencesByCategory(Map<String, Integer> occurences) {
         this.occurences = occurences;
-    }
-
-    public static Word findById(String id) throws Exception {
-        return Config.getInstance().getDatabase().findWordById(id);
-    }
-
-    public static Word findByName(String name) throws Exception {
-        return Config.getInstance().getDatabase().findWordByName(name);
     }
 }

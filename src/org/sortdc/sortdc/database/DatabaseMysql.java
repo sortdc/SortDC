@@ -15,22 +15,11 @@ import org.sortdc.sortdc.dao.Word;
 
 public class DatabaseMysql extends Database {
 
-    private static Database instance;
     private Connection connection;
 
-    private DatabaseMysql() {
-    }
-
-    /**
-     * Creates a unique instance of DatabaseMysql (Singleton)
-     *
-     * @return Instance of DatabaseMysql
-     */
-    public static synchronized Database getInstance() {
-        if (instance == null) {
-            instance = new DatabaseMysql();
-        }
-        return instance;
+    public DatabaseMysql() {
+        this.setHost("localhost");
+        this.setPort(3306);
     }
 
     /**
@@ -39,6 +28,10 @@ public class DatabaseMysql extends Database {
      * @throws Exception
      */
     public void connect() throws Exception {
+        if(this.db_name == null){
+            throw new Exception("Dbname not set");
+        }
+        
         this.connection = DriverManager.getConnection("jdbc:mysql://" + this.host + "/" + this.db_name, this.username, this.password);
     }
 
@@ -391,7 +384,7 @@ public class DatabaseMysql extends Database {
      * @param value id or name
      * @throws Exception
      */
-    private void deleteDocumentByParam(String param, String value) throws Exception {
+    private synchronized void deleteDocumentByParam(String param, String value) throws Exception {
         PreparedStatement statement;
         ResultSet data;
         int document_id;
@@ -407,6 +400,8 @@ public class DatabaseMysql extends Database {
         } else {
             document_id = Integer.parseInt(value);
         }
+
+        this.deleteDocumentWordsOccurences(document_id);
 
         statement = this.connection.prepareStatement("DELETE FROM documents WHERE id = ?");
         statement.setInt(1, document_id);

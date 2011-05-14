@@ -3,25 +3,31 @@ log:
   verbose: true
   filepath: config/sortdc.log
 
-database:
-  dbms: mongodb
-  host: localhost
-  port: 27017
-  dbname: sortdc
-  #username: azerty
-  #password: azerty
-
 classifiers:
 
-  - name: thematics
+  thematics:
+    database:
+      dbms: mongodb
+      host: localhost
+      port: 27017
+      dbname: sortdc_thematics
+      #username: azerty
+      #password: azerty
     lang: french
     stemming: true
     autotrain: true
     autotrain_threshold: 0.7
-    multicategories: true
+    words_min_length: 3
     stopwords_file: config/stopwords.txt
     
-  - name: languages
+  languages:
+    database:
+      dbms: mysql
+      host: localhost
+      #port: 3306
+      dbname: sortdc_languages
+      username: sortdc_languages
+      password: azerty
     words: false
     ngrams_chars: [2, 3]
     #ngrams_words: 2

@@ -1,23 +1,27 @@
 package org.sortdc.sortdc;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.dao.Document;
+import org.sortdc.sortdc.database.Database;
 
 public class Classifier {
 
-    Tokenization tokenization;
+    private Tokenization tokenization;
+    private Database database;
+    private Map<String, Category> categories;
 
     /**
      * Instance of Classifier
      *
      * @param tokenization Instance of Tokenization
      */
-    public Classifier(Tokenization tokenization) {
+    public Classifier(Tokenization tokenization, Database database) throws Exception {
         this.tokenization = tokenization;
+        this.database = database;
+        this.loadCategories();
     }
 
     /**
@@ -27,16 +31,19 @@ public class Classifier {
      * @param category_id Category's id
      * @throws Exception
      */
-    public void train(String id, String text, String category_id) throws Exception {
+    public void train(String name, String text, String category_name) throws Exception {
+        if (!this.categories.containsKey(category_name)) {
+            throw new Exception("Category not found: " + category_name);
+        }
         List<String> words = tokenization.extract(text);
         Map<String, Integer> occurrences = this.tokenization.getOccurrences(words);
 
         Document doc = new Document();
-        doc.setName(id);
-        doc.setCategoryId(category_id);
+        doc.setName(name);
+        doc.setCategoryId(this.categories.get(category_name).getId());
         doc.setWordsOccurrences(occurrences);
-        // TODO
-        //doc.save();
+
+        this.database.saveDocument(doc);
     }
 
     /**
@@ -57,5 +64,18 @@ public class Classifier {
         }
         // TODO
         return null;
+    }
+
+    /**
+     * Loads all categories and stores it in this.categories
+     * 
+     * @throws Exception
+     */
+    private synchronized void loadCategories() throws Exception {
+        this.categories.clear();
+        List<Category> categories_list = this.database.findAllCategories();
+        for (Category category : categories_list) {
+            this.categories.put(category.getName(), category);
+        }
     }
 }
