@@ -34,5 +34,5 @@ public interface DatabaseInterface {
 
     public Word findWordByName(String name) throws Exception;
 
-    public List<Word> findWordByNames(Set<String> names) throws Exception;
+    public List<Word> findWordsByNames(Set<String> names) throws Exception;
 }

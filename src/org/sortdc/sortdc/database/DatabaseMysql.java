@@ -121,15 +121,33 @@ public class DatabaseMysql extends Database {
      */
     private Document findDocumentByParam(String param, String value) throws Exception {
         Document document = new Document();
+        PreparedStatement statement;
+        ResultSet data;
 
-        PreparedStatement statement = this.connection.prepareStatement("SELECT id, name FROM categories");
-        ResultSet data = statement.executeQuery();
-        while (data.next()) {
-            DBObject current_doc = cursor.next();
-            document.setId(id);
-            document.setName((String) current_doc.get("name"));
-            document.setCategoryId((String) current_doc.get("category_id"));
-            document.setWordsOccurrences((Map<String, Integer>) current_doc.get("words"));
+        statement = this.connection.prepareStatement("SELECT id, name, category_id FROM documents WHERE " + param + " = ? LIMIT 1");
+        statement.setString(1, value);
+        data = statement.executeQuery();
+        if (data.next()) {
+            int document_id = data.getInt("id");
+            document.setId(Integer.toString(document_id));
+            document.setName(data.getString("name"));
+            document.setCategoryId(Integer.toString(data.getInt("category_id")));
+
+            Map<String, Integer> words = new HashMap<String, Integer>();
+            statement = this.connection.prepareStatement(
+                    "SELECT w.name, dw.occurrences "
+                    + "FROM documents_words dw "
+                    + "INNER JOIN words w ON w.id = dw.word_id"
+                    + "WHERE dw.document_id = ?");
+            statement.setInt(1, document_id);
+            data = statement.executeQuery();
+            while (data.next()) {
+                words.put(data.getString("name"), data.getInt("occurrences"));
+            }
+            document.setWordsOccurrences(words);
+
+        } else {
+            throw new Exception("Document not found");
         }
         return document;
     }
@@ -216,7 +234,7 @@ public class DatabaseMysql extends Database {
 
             statement = this.connection.prepareStatement(
                     "SELECT word_id "
-                    + "FROM words_categories "
+                    + "FROM categories_words "
                     + "WHERE word_id IN (" + this.generateQsForIn(words_ids.size()) + ") AND category_id = ?");
             i = 1;
             for (Map.Entry<String, Integer> word : words_ids.entrySet()) {
@@ -227,7 +245,7 @@ public class DatabaseMysql extends Database {
             while (data.next()) {
                 int word_id = data.getInt("word_id");
                 statement = this.connection.prepareStatement(
-                        "UPDATE words_categories "
+                        "UPDATE categories_words "
                         + "SET occurrences = occurrences + ? "
                         + "WHERE word_id = ? AND category_id = ?");
                 statement.setInt(1, document.getWordsOccurrences().get((String) words_names.get(word_id)));
@@ -239,7 +257,7 @@ public class DatabaseMysql extends Database {
 
             for (Map.Entry<Integer, String> word : words_names.entrySet()) {
                 statement = this.connection.prepareStatement(
-                        "INSERT INTO words_categories "
+                        "INSERT INTO categories_words "
                         + "(word_id, category_id, occurrences) "
                         + "VALUES (?, ?, ?)");
                 statement.setInt(1, word.getKey());
@@ -273,7 +291,7 @@ public class DatabaseMysql extends Database {
         PreparedStatement statement;
         ResultSet data;
         PreparedStatement statement2 = this.connection.prepareStatement(
-                "UPDATE words_categories "
+                "UPDATE categories_words "
                 + "SET occurrences = GREATEST(0, occurrences - ?) "
                 + "WHERE word_id = ? AND category_id = ? "
                 + "LIMIT 1");
@@ -289,7 +307,7 @@ public class DatabaseMysql extends Database {
             statement2.execute();
         }
 
-        statement = this.connection.prepareStatement("DELETE FROM words_categories WHERE occurrences = 0");
+        statement = this.connection.prepareStatement("DELETE FROM categories_words WHERE occurrences = 0");
         statement.execute();
 
         statement = this.connection.prepareStatement("DELETE FROM documents_words WHERE document_id = ?");
@@ -297,19 +315,101 @@ public class DatabaseMysql extends Database {
         statement.execute();
     }
 
+    /**
+     * Finds a word given its id
+     *
+     * @param id word id
+     * @return word matching id
+     * @throws Exception
+     */
     public Word findWordById(String id) throws Exception {
-        // TODO
-        return null;
+        return this.findWordByParam("id", id);
     }
 
+    /**
+     * Finds a word given its name
+     *
+     * @param name word name
+     * @return word matching name
+     * @throws Exception
+     */
     public Word findWordByName(String name) throws Exception {
-        // TODO
-        return null;
+        return this.findWordByParam("name", name);
     }
 
-    public List<Word> findWordByNames(Set<String> names) throws Exception {
-        // TODO
-        return null;
+    /**
+     * Finds a word by a parameter (id or name)
+     *
+     * @param param search parameter
+     * @param name word name
+     * @return word matching name
+     * @throws Exception
+     */
+    private Word findWordByParam(String param, String value) throws Exception {
+        Word word = new Word();
+        PreparedStatement statement;
+        ResultSet data;
+
+        statement = this.connection.prepareStatement("SELECT id, name FROM words WHERE " + param + " = ? LIMIT 1");
+        statement.setString(1, value);
+        data = statement.executeQuery();
+        if (data.next()) {
+            int word_id = data.getInt("id");
+            word.setId(Integer.toString(word_id));
+            word.setName(data.getString("name"));
+
+            Map<String, Integer> occurences = new HashMap<String, Integer>();
+            statement = this.connection.prepareStatement("SELECT category_id, occurrences FROM categories_words WHERE word_id = ?");
+            statement.setInt(1, word_id);
+            data = statement.executeQuery();
+            while (data.next()) {
+                occurences.put(data.getString("category_id"), data.getInt("occurrences"));
+            }
+            word.setOccurrencesByCategory(occurences);
+
+        } else {
+            throw new Exception("Word not found");
+        }
+        return word;
+    }
+
+    /**
+     * Finds a list of words given a set of names
+     *
+     * @param names set of names
+     * @return list of words matching names
+     * @throws Exception
+     */
+    public List<Word> findWordsByNames(Set<String> names) throws Exception {
+        List<Word> words = new ArrayList<Word>();
+
+        PreparedStatement statement;
+        ResultSet data;
+
+        statement = this.connection.prepareStatement("SELECT id, name FROM words WHERE name IN (" + this.generateQsForIn(names.size()) + ")");
+        int i = 1;
+        for (String name : names) {
+            statement.setString(i++, name);
+        }
+        data = statement.executeQuery();
+        while (data.next()) {
+            Word word = new Word();
+            int word_id = data.getInt("id");
+            word.setId(Integer.toString(word_id));
+            word.setName(data.getString("name"));
+
+            Map<String, Integer> occurences = new HashMap<String, Integer>();
+            statement = this.connection.prepareStatement("SELECT category_id, occurrences FROM categories_words WHERE word_id = ?");
+            statement.setInt(1, word_id);
+            data = statement.executeQuery();
+            while (data.next()) {
+                occurences.put(data.getString("category_id"), data.getInt("occurrences"));
+            }
+            word.setOccurrencesByCategory(occurences);
+
+            words.add(word);
+        }
+        return words;
     }
 
     /**

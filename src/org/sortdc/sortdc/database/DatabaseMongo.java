@@ -97,22 +97,7 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public Document findDocumentById(String id) throws Exception {
-        Document document = new Document();
-
-        DBCollection collection = this.db.getCollection("documents");
-        DBObject query = new BasicDBObject();
-        query.put("_id", id);
-
-        DBCursor cursor = collection.find(query);
-
-        if (cursor.hasNext()) {
-            DBObject current_doc = cursor.next();
-            document.setId(id);
-            document.setName((String) current_doc.get("name"));
-            document.setCategoryId((String) current_doc.get("category_id"));
-            document.setWordsOccurrences((Map<String, Integer>) current_doc.get("words"));
-        }
-        return document;
+        return this.findDocumentByParam("id", id);
     }
 
     /**
@@ -123,20 +108,34 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public Document findDocumentByName(String name) throws Exception {
+        return this.findDocumentByParam("name", name);
+    }
+
+    /**
+     * Finds a document by a parameter (id or name)
+     *
+     * @param param search parameter
+     * @param name document name
+     * @return document matching name
+     * @throws Exception
+     */
+    private Document findDocumentByParam(String param, String value) throws Exception {
         Document document = new Document();
 
         DBCollection collection = this.db.getCollection("documents");
         DBObject query = new BasicDBObject();
-        query.put("name", name);
+        query.put(param, value);
 
         DBCursor cursor = collection.find(query);
 
         if (cursor.hasNext()) {
             DBObject current_doc = cursor.next();
             document.setId((String) current_doc.get("_id"));
-            document.setName(name);
+            document.setName((String) current_doc.get("name"));
             document.setCategoryId((String) current_doc.get("category_id"));
             document.setWordsOccurrences((Map<String, Integer>) current_doc.get("words"));
+        } else {
+            throw new Exception("Document not found");
         }
         return document;
     }
@@ -201,56 +200,56 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public Word findWordById(String id) throws Exception {
-        Word word = new Word();
-
-        DBCollection collection = this.db.getCollection("words");
-        DBObject query = new BasicDBObject();
-        query.put("_id", id);
-
-        DBCursor cursor = collection.find(query);
-
-        if (cursor.hasNext()) {
-            DBObject current_doc = cursor.next();
-            word.setId(id);
-            word.setName((String) current_doc.get("name"));
-            word.setOccurrencesByCategory((Map<String, Integer>) current_doc.get("occurences"));
-        }
-        return word;
+        return this.findWordByParam("id", id);
     }
 
     /**
-     * find a word given its name
+     * Finds a word given its name
      *
      * @param name word name
      * @return word matching name
      * @throws Exception
      */
     public Word findWordByName(String name) throws Exception {
+        return this.findWordByParam("name", name);
+    }
+
+    /**
+     * Finds a word by a parameter (id or name)
+     *
+     * @param param search parameter
+     * @param name word name
+     * @return word matching name
+     * @throws Exception
+     */
+    private Word findWordByParam(String param, String value) throws Exception {
         Word word = new Word();
 
         DBCollection collection = this.db.getCollection("words");
         DBObject query = new BasicDBObject();
-        query.put("name", name);
+        query.put(param, value);
 
         DBCursor cursor = collection.find(query);
 
         if (cursor.hasNext()) {
             DBObject current_doc = cursor.next();
             word.setId((String) current_doc.get("_id"));
-            word.setName(name);
+            word.setName((String) current_doc.get("name"));
             word.setOccurrencesByCategory((Map<String, Integer>) current_doc.get("occurences"));
+        } else {
+            throw new Exception("Word not found");
         }
         return word;
     }
 
     /**
-     * find a list of words given a set of names
+     * Finds a list of words given a set of names
      *
      * @param names set of names
      * @return list of words matching names
      * @throws Exception
      */
-    public List<Word> findWordByNames(Set<String> names) throws Exception {
+    public List<Word> findWordsByNames(Set<String> names) throws Exception {
         List<Word> words = new ArrayList<Word>();
 
         DBCollection collection = this.db.getCollection("words");
