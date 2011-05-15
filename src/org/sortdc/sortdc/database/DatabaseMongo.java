@@ -7,6 +7,7 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +30,7 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public void connect() throws Exception {
-        if(this.db_name == null){
+        if (this.db_name == null) {
             throw new Exception("Dbname not set");
         }
 
@@ -170,20 +171,9 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public synchronized void saveDocument(Document document) throws Exception {
-        if (document.getId() == null) {
-            String category_id = document.getCategoryId();
-            Map<String, Integer> doc_occurences = document.getWordsOccurrences();
-
-            for (Map.Entry<String, Integer> occurences : doc_occurences.entrySet()) {
-                // TOREPLACE :
-                Word word = this.findWordByName(occurences.getKey());
-                for (Map.Entry<String, Integer> word_occurences : word.getOccurrencesByCategory().entrySet()) {
-                    if (word_occurences.getKey().equals(category_id)) {
-                        word_occurences.setValue(word_occurences.getValue() - occurences.getValue());
-                        // TODO
-                    }
-                }
-            }
+        // si le document existe, on supprime les occurences de ses mots dans sa catégorie
+        if (document.getId() != null) {
+            this.deleteDocumentWordsOcurrences(document);
         }
         DBCollection collection = this.db.getCollection("documents");
         DBObject obj = new BasicDBObject();
@@ -198,17 +188,34 @@ public class DatabaseMongo extends Database {
             collection.save(obj);
         }
 
-        if (document.getId() == null) {
-            for (Map.Entry<String, Integer> doc_occurences : document.getWordsOccurrences().entrySet()) {
-                Word word = this.findWordByName((String) doc_occurences.getKey());
+        for (Map.Entry<String, Integer> doc_occurences : document.getWordsOccurrences().entrySet()) {
+            Word word = this.findWordByName(doc_occurences.getKey());
 
+            Map<String, Integer> occurences = new HashMap<String, Integer>();
+            // si le mot n'existe pas encore dans la collection, on l'ajoute
+            if (word.getId() == null) {
+                word.setName(doc_occurences.getKey());
+                occurences.put(document.getCategoryId(), doc_occurences.getValue());
+                word.setOccurrencesByCategory(occurences);
+            } else {
+                // s'il existe, on gère le nombre d'occurences dans la catégorie
+                occurences = word.getOccurrencesByCategory();
+                boolean cat_found = false;
                 for (Map.Entry<String, Integer> word_occurences : word.getOccurrencesByCategory().entrySet()) {
+                    // s'il est déjà présent dans la catégorie, on ajoute le nb d'occurences dans le doc au nb d'occurences dans la catégorie du doc
                     if (word_occurences.getKey().equals(document.getCategoryId())) {
-                        //occurences += doc_occurences.getValue();
-                        //word_occurences.setValue(occurences);
+                        word_occurences.setValue(word_occurences.getValue() + doc_occurences.getValue());
+                        occurences.put(word_occurences.getKey(), word_occurences.getValue());
+                        cat_found = true;
                     }
                 }
+                // s'il n'est pas présent dans la catégorie, on ajoute l'entrée correspondante
+                if (!cat_found) {
+                    occurences.put(document.getCategoryId(), doc_occurences.getValue());
+                }
+                word.setOccurrencesByCategory(occurences);
             }
+            this.saveWord(word);
         }
     }
 
@@ -217,8 +224,20 @@ public class DatabaseMongo extends Database {
      *
      * @throws Exception
      */
-    private void deleteDocumentWordsOcurrences() {
-        // TODO
+    private void deleteDocumentWordsOcurrences(Document document) throws Exception {
+        if (document.getId() != null) {
+            Map<String, Integer> occurences = document.getWordsOccurrences();
+
+            for (Map.Entry<String, Integer> doc_occurences : occurences.entrySet()) {
+                Word word = this.findWordByName(doc_occurences.getKey());
+                for (Map.Entry<String, Integer> word_occurences : word.getOccurrencesByCategory().entrySet()) {
+                    if (word_occurences.getKey().equals(document.getCategoryId())) {
+                        word_occurences.setValue(word_occurences.getValue() - doc_occurences.getValue());
+                        this.saveWord(word);
+                    }
+                }
+            }
+        }
     }
 
     /**
