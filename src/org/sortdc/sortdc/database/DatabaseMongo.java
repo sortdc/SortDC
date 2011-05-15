@@ -172,7 +172,6 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public synchronized void saveDocument(Document document) throws Exception {
-        // si le document existe, on supprime les occurences de ses mots dans sa catégorie
         if (document.getId() != null) {
             Document old_document = this.findDocumentById(document.getId());
             this.deleteDocumentWordsOcurrences(old_document);
