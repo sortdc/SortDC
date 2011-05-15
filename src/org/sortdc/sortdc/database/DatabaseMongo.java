@@ -8,6 +8,7 @@ import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -189,33 +190,28 @@ public class DatabaseMongo extends Database {
             collection.save(obj);
         }
 
+        Set<String> names = new HashSet<String>();
         for (Map.Entry<String, Integer> doc_occurences : document.getWordsOccurrences().entrySet()) {
-            Word word = this.findWordByName(doc_occurences.getKey());
+            names.add(doc_occurences.getKey());
+        }
+        List<Word> words = this.findWordsByNames(names);
+        Map<String, Integer> occurences = new HashMap<String, Integer>();
+        for(Word word : words){
+            names.remove(word.getName());
+            occurences = word.getOccurrencesByCategory();
 
-            Map<String, Integer> occurences = new HashMap<String, Integer>();
-            // si le mot n'existe pas encore dans la collection, on l'ajoute
-            if (word.getId() == null) {
-                word.setName(doc_occurences.getKey());
-                occurences.put(document.getCategoryId(), doc_occurences.getValue());
-                word.setOccurrencesByCategory(occurences);
+            if (occurences.containsKey(document.getCategoryId())) {
+                occurences.put(document.getCategoryId(), occurences.get(document.getCategoryId()) + document.getWordsOccurrences().get(word.getName()));
             } else {
-                // s'il existe, on gère le nombre d'occurences dans la catégorie
-                occurences = word.getOccurrencesByCategory();
-                boolean cat_found = false;
-                for (Map.Entry<String, Integer> word_occurences : word.getOccurrencesByCategory().entrySet()) {
-                    // s'il est déjà présent dans la catégorie, on ajoute le nb d'occurences dans le doc au nb d'occurences dans la catégorie du doc
-                    if (word_occurences.getKey().equals(document.getCategoryId())) {
-                        word_occurences.setValue(word_occurences.getValue() + doc_occurences.getValue());
-                        occurences.put(word_occurences.getKey(), word_occurences.getValue());
-                        cat_found = true;
-                    }
-                }
-                // s'il n'est pas présent dans la catégorie, on ajoute l'entrée correspondante
-                if (!cat_found) {
-                    occurences.put(document.getCategoryId(), doc_occurences.getValue());
-                }
-                word.setOccurrencesByCategory(occurences);
+                occurences.put(document.getCategoryId(), document.getWordsOccurrences().get(word.getName()));
             }
+            word.setOccurrencesByCategory(occurences);
+            this.saveWord(word);
+        }
+        for(String name : names){
+            Word word = new Word();
+            word.setName(name);
+            occurences.put(document.getCategoryId(), document.getWordsOccurrences().get(name));
             this.saveWord(word);
         }
     }
