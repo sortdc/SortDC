@@ -195,7 +195,7 @@ public class DatabaseMongo extends Database {
         }
         List<Word> words = this.findWordsByNames(names);
         Map<String, Integer> occurences = new HashMap<String, Integer>();
-        for(Word word : words){
+        for (Word word : words) {
             names.remove(word.getName());
             occurences = word.getOccurrencesByCategory();
 
@@ -207,7 +207,7 @@ public class DatabaseMongo extends Database {
             word.setOccurrencesByCategory(occurences);
             this.saveWord(word);
         }
-        for(String name : names){
+        for (String name : names) {
             Word word = new Word();
             word.setName(name);
             occurences.put(document.getCategoryId(), document.getWordsOccurrences().get(name));
