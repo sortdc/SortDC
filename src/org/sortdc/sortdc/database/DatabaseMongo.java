@@ -211,6 +211,7 @@ public class DatabaseMongo extends Database {
             Word word = new Word();
             word.setName(name);
             occurences.put(document.getCategoryId(), document.getWordsOccurrences().get(name));
+            word.setOccurrencesByCategory(occurences);
             this.saveWord(word);
         }
     }
