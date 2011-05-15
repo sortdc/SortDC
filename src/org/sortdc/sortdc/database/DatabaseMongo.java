@@ -189,10 +189,7 @@ public class DatabaseMongo extends Database {
             collection.save(obj);
         }
 
-        Set<String> names = new HashSet<String>();
-        for (Map.Entry<String, Integer> doc_occurences : document.getWordsOccurrences().entrySet()) {
-            names.add(doc_occurences.getKey());
-        }
+        Set<String> names = document.getWordsOccurrences().keySet();
         List<Word> words = this.findWordsByNames(names);
         Map<String, Integer> occurences = new HashMap<String, Integer>();
         for (Word word : words) {
