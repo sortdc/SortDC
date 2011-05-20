@@ -1,9 +1,12 @@
 package org.sortdc.sortdc.database;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,11 +31,33 @@ public class DatabaseMysql extends Database {
      * @throws Exception
      */
     public void connect() throws Exception {
-        if(this.db_name == null){
+        if (this.db_name == null) {
             throw new Exception("Dbname not set");
         }
-        
+
         this.connection = DriverManager.getConnection("jdbc:mysql://" + this.host + "/" + this.db_name, this.username, this.password);
+        this.createTables();
+    }
+
+    /**
+     * Creates tables if they don't exist
+     * 
+     * @throws Exception
+     */
+    private void createTables() throws Exception {
+        FileReader input = new FileReader("config/mysql_structure.sql");
+        BufferedReader br = new BufferedReader(input);
+        String line, sql = "";
+        while ((line = br.readLine()) != null) {
+            sql += line;
+        }
+        Statement statement = this.connection.createStatement();
+        String[] queries = sql.split(";");
+        for (String query : queries) {
+            if (!query.trim().equals("")) {
+                statement.executeUpdate(query);
+            }
+        }
     }
 
     /**
@@ -64,7 +89,7 @@ public class DatabaseMysql extends Database {
         if (category.getId() == null) {
             PreparedStatement statement = this.connection.prepareStatement("INSERT INTO categories (name) VALUES (?)");
             statement.setString(2, category.getName());
-            statement.execute();
+            statement.executeUpdate();
             ResultSet data = statement.getGeneratedKeys();
             if (data != null && data.next()) {
                 category.setId(Integer.toString(data.getInt(1)));
@@ -75,7 +100,7 @@ public class DatabaseMysql extends Database {
             PreparedStatement statement = this.connection.prepareStatement("UPDATE categories SET name = ? WHERE id = ?");
             statement.setString(1, category.getName());
             statement.setInt(2, Integer.parseInt(category.getId()));
-            statement.execute();
+            statement.executeUpdate();
             if (statement.getUpdateCount() == 0) {
                 throw new Exception("Category not found");
             }
@@ -128,7 +153,7 @@ public class DatabaseMysql extends Database {
 
         statement = this.connection.prepareStatement("DELETE FROM categories WHERE id = ?");
         statement.setInt(1, category_id);
-        statement.execute();
+        statement.executeUpdate();
     }
 
     /**
@@ -213,7 +238,7 @@ public class DatabaseMysql extends Database {
                 statement = this.connection.prepareStatement("INSERT INTO documents (name, category_id) VALUES (?, ?)");
                 statement.setString(1, document.getName());
                 statement.setInt(2, category_id);
-                statement.execute();
+                statement.executeUpdate();
 
                 data = statement.getGeneratedKeys();
                 if (data != null && data.next()) {
@@ -228,13 +253,13 @@ public class DatabaseMysql extends Database {
 
                 statement = this.connection.prepareStatement("DELETE FROM documents_words WHERE document_id = ?");
                 statement.setInt(1, document_id);
-                statement.execute();
+                statement.executeUpdate();
 
                 statement = this.connection.prepareStatement("UPDATE documents SET name = ?, category_id = ? WHERE id = ?");
                 statement.setString(1, document.getName());
                 statement.setInt(2, Integer.parseInt(document.getCategoryId()));
                 statement.setInt(3, Integer.parseInt(document.getId()));
-                statement.execute();
+                statement.executeUpdate();
                 if (statement.getUpdateCount() == 0) {
                     throw new Exception("Document not found");
                 }
@@ -259,7 +284,7 @@ public class DatabaseMysql extends Database {
             statement = this.connection.prepareStatement("INSERT INTO words (name) VALUES (?)");
             for (String word_name : words) {
                 statement.setString(1, word_name);
-                statement.execute();
+                statement.executeUpdate();
 
                 data = statement.getGeneratedKeys();
                 if (data != null && data.next()) {
@@ -275,7 +300,7 @@ public class DatabaseMysql extends Database {
                 statement.setInt(1, document_id);
                 statement.setInt(2, (Integer) word.getValue());
                 statement.setInt(3, document.getWordsOccurrences().get((String) word.getKey()));
-                statement.execute();
+                statement.executeUpdate();
             }
 
             statement = this.connection.prepareStatement(
@@ -297,7 +322,7 @@ public class DatabaseMysql extends Database {
                 statement.setInt(1, document.getWordsOccurrences().get((String) words_names.get(word_id)));
                 statement.setInt(2, word_id);
                 statement.setInt(3, category_id);
-                statement.execute();
+                statement.executeUpdate();
                 words_names.remove(word_id);
             }
 
@@ -309,7 +334,7 @@ public class DatabaseMysql extends Database {
                 statement.setInt(1, word.getKey());
                 statement.setInt(2, category_id);
                 statement.setInt(3, document.getWordsOccurrences().get((String) word.getValue()));
-                statement.execute();
+                statement.executeUpdate();
             }
 
             this.connection.commit();
@@ -350,11 +375,11 @@ public class DatabaseMysql extends Database {
             statement2.setInt(1, data.getInt("occurrences"));
             statement2.setInt(2, data.getInt("word_id"));
             statement2.setInt(3, data.getInt("category_id"));
-            statement2.execute();
+            statement2.executeUpdate();
         }
 
         statement = this.connection.prepareStatement("DELETE FROM categories_words WHERE occurrences = 0");
-        statement.execute();
+        statement.executeUpdate();
     }
 
     /**
@@ -405,7 +430,7 @@ public class DatabaseMysql extends Database {
 
         statement = this.connection.prepareStatement("DELETE FROM documents WHERE id = ?");
         statement.setInt(1, document_id);
-        statement.execute();
+        statement.executeUpdate();
     }
 
     /**
