@@ -72,7 +72,7 @@ public class Classifier {
      * @throws Exception
      */
     private synchronized void loadCategories() throws Exception {
-        this.categories.clear();
+        this.categories = new HashMap<String, Category>();
         List<Category> categories_list = this.database.findAllCategories();
         for (Category category : categories_list) {
             this.categories.put(category.getName(), category);
