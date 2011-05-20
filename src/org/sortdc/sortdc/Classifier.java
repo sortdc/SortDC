@@ -1,10 +1,13 @@
 package org.sortdc.sortdc;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.dao.Document;
+import org.sortdc.sortdc.dao.Word;
 import org.sortdc.sortdc.database.Database;
 
 public class Classifier {
@@ -33,12 +36,17 @@ public class Classifier {
      */
     public void train(String name, String text, String category_name) throws Exception {
         if (!this.categories.containsKey(category_name)) {
-            throw new Exception("Category not found: " + category_name);
+            this.addCategory(category_name);
         }
         List<String> words = tokenization.extract(text);
         Map<String, Integer> occurrences = this.tokenization.getOccurrences(words);
 
-        Document doc = new Document();
+        Document doc;
+        try {
+            doc = this.database.findDocumentByName(name);
+        } catch (Exception e) {
+            doc = new Document();
+        }
         doc.setName(name);
         doc.setCategoryId(this.categories.get(category_name).getId());
         doc.setWordsOccurrences(occurrences);
@@ -47,23 +55,54 @@ public class Classifier {
     }
 
     /**
-     * Determines the category of a new text
+     * For each category, determines the probability that the given text belongs to it
      *
      * @param text Text
+     * @return Probabilities by category
      * @throws Exception
      */
-    public Category categorize(String text) throws Exception {
-        List<String> words = tokenization.extract(text);
-        int nb_words = words.size();
-        Map<String, Integer> occurrences = this.tokenization.getOccurrences(words);
-        Map<String, Float> probabilities = new HashMap();
+    public Map<String, Float> categorize(String text) throws Exception {
+        List<String> tokens = tokenization.extract(text);
+        Set<String> words_set = new HashSet<String>(tokens);
+        Map<String, Integer> doc_words_occurrences = this.tokenization.getOccurrences(tokens);
+        List<Word> words = this.database.findWordsByNames(words_set);
+        Map<String, Float> categories_prob = new HashMap();
 
-        for (Map.Entry<String, Integer> pairs : occurrences.entrySet()) {
-            // TODO
-            System.out.println(pairs.getKey() + " = " + pairs.getValue());
+        int nb_words = 0;
+        for (Word word : words) {
+            if (doc_words_occurrences.containsKey(word.getName())) {
+                nb_words += doc_words_occurrences.get(word.getName());
+            }
         }
-        // TODO
-        return null;
+
+        for (Category category : this.categories.values()) {
+            Float category_prob = 0f;
+            for (Word word : words) {
+                if (!doc_words_occurrences.containsKey(word.getName()) || !word.getOccurrencesByCategory().containsKey(category.getId())) {
+                    continue;
+                }
+                category_prob +=
+                        new Float(doc_words_occurrences.get(word.getName())
+                        * word.getOccurrencesByCategory().get(category.getId()))
+                        / new Float(word.getOccurrences());
+            }
+            category_prob /= nb_words;
+            categories_prob.put(category.getName(), category_prob);
+        }
+        return categories_prob;
+    }
+
+    /**
+     * Creates a category
+     *
+     * @param name Category's unique name
+     * @throws Exception
+     */
+    public void addCategory(String name) throws Exception {
+        Category category = new Category();
+        category.setName(name);
+        this.database.saveCategory(category);
+        this.categories.put(name, category);
     }
 
     /**
