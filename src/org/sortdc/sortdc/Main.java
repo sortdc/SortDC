@@ -20,8 +20,8 @@ public class Main {
 
         try {
             Map<String, Classifier> classifiers = config.getClassifiers();
-            Classifier classifier = classifiers.get("languages");
-            //classifier.train("text1", "Bonjour je fais des confitures", "lolizator");
+            Classifier classifier = classifiers.get("thematics");
+            classifier.train("text1", "Bonjour je fais des confitures", "lolizator");
             classifier.train("text2", "Sortdc ça roxe du poney", "poutrage");
             System.out.println(classifier.categorize("les confitures sont bonnes"));
         } catch (Exception e) {

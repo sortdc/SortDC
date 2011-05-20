@@ -42,6 +42,33 @@ public class DatabaseMongo extends Database {
         DB database = init.getDB(this.db_name);
 
         this.db = database;
+        this.init();
+    }
+
+    /**
+     * Initializes the database : creates tables if they don't exist
+     *
+     * @throws Exception
+     */
+    private void init() throws Exception {
+        this.addUniqueIndex("categories", "name");
+        this.addUniqueIndex("documents", "name");
+        this.addUniqueIndex("words", "name");
+    }
+
+    /**
+     * Creates a unique index on a field
+     *
+     * @param collection
+     * @param field
+     * @throws Exception
+     */
+    private void addUniqueIndex(String collection, String field) throws Exception{
+        DBObject obj = new BasicDBObject();
+        obj.put(field, 1);
+        DBObject options = new BasicDBObject();
+        options.put("unique", true);
+        db.getCollection("words").ensureIndex(obj, options);
     }
 
     /**

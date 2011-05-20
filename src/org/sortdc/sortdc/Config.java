@@ -18,7 +18,7 @@ import org.sortdc.sortdc.database.DatabaseMysql;
 public class Config {
 
     private static Config instance;
-    private Map parameters;
+    private Map<String, Object> parameters;
     private Map<String, Classifier> classifiers = new HashMap<String, Classifier>();
     public static final String LOG = "log";
     public static final String LOG_VERBOSE = "verbose";
@@ -65,7 +65,7 @@ public class Config {
         YamlReader reader = new YamlReader(new FileReader(filePath));
         Object params = reader.read();
         if (params instanceof Map) {
-            this.parameters = (Map) params;
+            this.parameters = (Map<String, Object>) params;
         } else {
             throw new Exception("Invalid config file");
         }
@@ -253,7 +253,7 @@ public class Config {
 
             if (classifierConfig.containsKey(CLASSIFIER_STOPWORDS_FILEPATH)) {
                 String stopwordsFilepath = this.paramToString(classifierConfig.get(CLASSIFIER_STOPWORDS_FILEPATH));
-                List<String> stopWords = new ArrayList();
+                List<String> stopWords = new ArrayList<String>();
                 InputStream is = new FileInputStream(stopwordsFilepath);
                 InputStreamReader isr = new InputStreamReader(is);
                 BufferedReader br = new BufferedReader(isr);
