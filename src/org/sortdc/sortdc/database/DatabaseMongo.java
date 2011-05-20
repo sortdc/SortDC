@@ -57,8 +57,8 @@ public class DatabaseMongo extends Database {
         while (cursor.hasNext()) {
             DBObject obj = cursor.next();
             Category category = new Category();
-            category.setId((String) obj.get("_id"));
-            category.setName((String) obj.get("name"));
+            category.setId(obj.get("_id").toString());
+            category.setName(obj.get("name").toString());
             categories.add(category);
         }
         cursor.close();
@@ -73,13 +73,13 @@ public class DatabaseMongo extends Database {
      */
     public synchronized void saveCategory(Category category) throws Exception {
         DBCollection collection = this.db.getCollection("categories");
-        DBObject obj = new BasicDBObject();
-        obj.put("name", category.getName());
+        DBObject query = new BasicDBObject();
+        query.put("name", category.getName());
         if (category.getId() == null) {
-            collection.insert(obj);
+            collection.insert(query);
         } else {
-            obj.put("_id", category.getId());
-            collection.save(obj);
+            query.put("_id", category.getId());
+            collection.save(query);
         }
     }
 
@@ -366,15 +366,21 @@ public class DatabaseMongo extends Database {
      */
     public synchronized void saveWord(Word word) throws Exception {
         DBCollection collection = this.db.getCollection("words");
-        DBObject obj = new BasicDBObject();
-        obj.put("name", word.getName());
-        obj.put("occurences", word.getOccurrencesByCategory());
+        DBObject query = new BasicDBObject();
+        query.put("name", word.getName());
+
+        Map<String, Integer> occurences = word.getOccurrencesByCategory();
+        DBObject word_occurences = new BasicDBObject();
+        for (Map.Entry<String, Integer> cat_occurences : occurences.entrySet()) {
+            System.out.println(cat_occurences.getKey()+","+cat_occurences.getValue());
+        }
+        query.put("occurences", word_occurences);
 
         if (word.getId() == null) {
-            collection.insert(obj);
+            collection.insert(query);
         } else {
-            obj.put("_id", word.getId());
-            collection.save(obj);
+            query.put("_id", word.getId());
+            collection.save(query);
         }
     }
 }
