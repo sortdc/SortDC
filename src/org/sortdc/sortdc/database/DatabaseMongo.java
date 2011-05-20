@@ -90,7 +90,7 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public void deleteCategoryById(String category_id) throws Exception {
-        this.deleteCategoryByParam("id", category_id);
+        this.deleteCategoryByParam("_id", category_id);
     }
 
     /**
@@ -126,7 +126,7 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public Document findDocumentById(String id) throws Exception {
-        return this.findDocumentByParam("id", id);
+        return this.findDocumentByParam("_id", id);
     }
 
     /**
@@ -181,16 +181,16 @@ public class DatabaseMongo extends Database {
             this.deleteDocumentWordsOcurrences(old_document);
         }
         DBCollection collection = this.db.getCollection("documents");
-        DBObject obj = new BasicDBObject();
-        obj.put("name", document.getName());
-        obj.put("category_id", document.getCategoryId());
-        obj.put("words", document.getWordsOccurrences());
+        DBObject query = new BasicDBObject();
+        query.put("name", document.getName());
+        query.put("category_id", document.getCategoryId());
+        query.put("words", document.getWordsOccurrences());
 
         if (document.getId() == null) {
-            collection.insert(obj);
+            collection.insert(query);
         } else {
-            obj.put("_id", document.getId());
-            collection.save(obj);
+            query.put("_id", document.getId());
+            collection.save(query);
         }
 
         Set<String> names = document.getWordsOccurrences().keySet();
@@ -245,7 +245,7 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public void deleteDocumentById(String document_id) throws Exception {
-        this.deleteDocumentByParam("id", document_id);
+        this.deleteDocumentByParam("_id", document_id);
     }
 
     /**
@@ -284,7 +284,7 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public Word findWordById(String id) throws Exception {
-        return this.findWordByParam("id", id);
+        return this.findWordByParam("_id", id);
     }
 
     /**
