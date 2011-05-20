@@ -69,7 +69,7 @@ public class DatabaseMongo extends Database {
         obj.put(field, 1);
         DBObject options = new BasicDBObject();
         options.put("unique", true);
-        db.getCollection("words").ensureIndex(obj, options);
+        db.getCollection(collection).ensureIndex(obj, options);
     }
 
     /**
