@@ -218,6 +218,7 @@ public class DatabaseMongo extends Database {
 
         if (document.getId() == null) {
             collection.insert(query);
+            document.setId(query.get("_id").toString());
         } else {
             query.put("_id", document.getId());
             collection.save(query);
@@ -408,6 +409,7 @@ public class DatabaseMongo extends Database {
 
         if (word.getId() == null) {
             collection.insert(query);
+            word.setId(query.get("_id").toString());
         } else {
             query.put("_id", word.getId());
             collection.save(query);
