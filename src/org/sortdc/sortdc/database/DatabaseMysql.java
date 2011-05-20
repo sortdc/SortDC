@@ -55,7 +55,10 @@ public class DatabaseMysql extends Database {
         String[] queries = sql.split(";");
         for (String query : queries) {
             if (!query.trim().equals("")) {
-                statement.executeUpdate(query);
+                try {
+                    statement.executeUpdate(query);
+                } catch (Exception e) {
+                }
             }
         }
     }
