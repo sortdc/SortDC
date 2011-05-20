@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -90,8 +91,8 @@ public class DatabaseMysql extends Database {
      */
     public synchronized void saveCategory(Category category) throws Exception {
         if (category.getId() == null) {
-            PreparedStatement statement = this.connection.prepareStatement("INSERT INTO categories (name) VALUES (?)");
-            statement.setString(2, category.getName());
+            PreparedStatement statement = this.connection.prepareStatement("INSERT INTO categories (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, category.getName());
             statement.executeUpdate();
             ResultSet data = statement.getGeneratedKeys();
             if (data != null && data.next()) {
@@ -207,7 +208,7 @@ public class DatabaseMysql extends Database {
             statement = this.connection.prepareStatement(
                     "SELECT w.name, dw.occurrences "
                     + "FROM documents_words dw "
-                    + "INNER JOIN words w ON w.id = dw.word_id"
+                    + "INNER JOIN words w ON w.id = dw.word_id "
                     + "WHERE dw.document_id = ?");
             statement.setInt(1, document_id);
             data = statement.executeQuery();
@@ -229,28 +230,30 @@ public class DatabaseMysql extends Database {
      * @throws Exception
      */
     public synchronized void saveDocument(Document document) throws Exception {
-        Integer new_id = null;
+        Integer document_id = null;
         this.connection.setAutoCommit(false);
         try {
             PreparedStatement statement;
+            PreparedStatement statement2;
             ResultSet data;
-            int document_id = Integer.parseInt(document.getId());
             int category_id = Integer.parseInt(document.getCategoryId());
 
             if (document.getId() == null) {
-                statement = this.connection.prepareStatement("INSERT INTO documents (name, category_id) VALUES (?, ?)");
+                statement = this.connection.prepareStatement("INSERT INTO documents (name, category_id) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
                 statement.setString(1, document.getName());
                 statement.setInt(2, category_id);
                 statement.executeUpdate();
 
                 data = statement.getGeneratedKeys();
                 if (data != null && data.next()) {
-                    new_id = data.getInt(1);
+                    document_id = data.getInt(1);
                 } else {
                     throw new Exception("Unable to add category");
                 }
 
             } else {
+
+                document_id = Integer.parseInt(document.getId());
 
                 this.deleteDocumentWordsOccurences(document_id);
 
@@ -268,7 +271,7 @@ public class DatabaseMysql extends Database {
                 }
             }
 
-            Set<String> words = document.getWordsOccurrences().keySet();
+            Set<String> words = new HashSet<String>(document.getWordsOccurrences().keySet());
             Map<String, Integer> words_ids = new HashMap<String, Integer>();
             Map<Integer, String> words_names = new HashMap<Integer, String>();
 
@@ -284,7 +287,7 @@ public class DatabaseMysql extends Database {
                 words_names.put(data.getInt("id"), data.getString("name"));
             }
 
-            statement = this.connection.prepareStatement("INSERT INTO words (name) VALUES (?)");
+            statement = this.connection.prepareStatement("INSERT INTO words (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
             for (String word_name : words) {
                 statement.setString(1, word_name);
                 statement.executeUpdate();
@@ -300,12 +303,20 @@ public class DatabaseMysql extends Database {
 
             statement = this.connection.prepareStatement("INSERT INTO documents_words (document_id, word_id, occurrences) VALUES (?, ?, ?)");
             for (Map.Entry<String, Integer> word : words_ids.entrySet()) {
+                if (!document.getWordsOccurrences().containsKey((String) word.getKey())) {
+                    System.out.println(document.getWordsOccurrences());
+                    System.out.println(word.getKey());
+                }
                 statement.setInt(1, document_id);
                 statement.setInt(2, (Integer) word.getValue());
                 statement.setInt(3, document.getWordsOccurrences().get((String) word.getKey()));
                 statement.executeUpdate();
             }
 
+            statement2 = this.connection.prepareStatement(
+                    "UPDATE categories_words "
+                    + "SET occurrences = occurrences + ? "
+                    + "WHERE word_id = ? AND category_id = ?");
             statement = this.connection.prepareStatement(
                     "SELECT word_id "
                     + "FROM categories_words "
@@ -318,14 +329,10 @@ public class DatabaseMysql extends Database {
             data = statement.executeQuery();
             while (data.next()) {
                 int word_id = data.getInt("word_id");
-                statement = this.connection.prepareStatement(
-                        "UPDATE categories_words "
-                        + "SET occurrences = occurrences + ? "
-                        + "WHERE word_id = ? AND category_id = ?");
-                statement.setInt(1, document.getWordsOccurrences().get((String) words_names.get(word_id)));
-                statement.setInt(2, word_id);
-                statement.setInt(3, category_id);
-                statement.executeUpdate();
+                statement2.setInt(1, document.getWordsOccurrences().get((String) words_names.get(word_id)));
+                statement2.setInt(2, word_id);
+                statement2.setInt(3, category_id);
+                statement2.executeUpdate();
                 words_names.remove(word_id);
             }
 
@@ -341,9 +348,7 @@ public class DatabaseMysql extends Database {
             }
 
             this.connection.commit();
-            if (new_id != null) {
-                document.setId(Integer.toString(new_id));
-            }
+            document.setId(Integer.toString(document_id));
 
         } catch (Exception e) {
             this.connection.rollback();
@@ -371,8 +376,9 @@ public class DatabaseMysql extends Database {
                 + "LIMIT 1");
         statement = this.connection.prepareStatement(
                 "SELECT dw.word_id, dw.occurrences, d.category_id "
-                + "FROM documents_words dw"
-                + "INNER JOIN documents d ON d.id = dw.document_id");
+                + "FROM documents_words dw "
+                + "INNER JOIN documents d ON d.id = ?");
+        statement.setInt(1, document_id);
         data = statement.executeQuery();
         while (data.next()) {
             statement2.setInt(1, data.getInt("occurrences"));
@@ -380,9 +386,6 @@ public class DatabaseMysql extends Database {
             statement2.setInt(3, data.getInt("category_id"));
             statement2.executeUpdate();
         }
-
-        statement = this.connection.prepareStatement("DELETE FROM categories_words WHERE occurrences = 0");
-        statement.executeUpdate();
     }
 
     /**
@@ -417,7 +420,7 @@ public class DatabaseMysql extends Database {
         ResultSet data;
         int document_id;
         if (param.equals("name")) {
-            statement = this.connection.prepareStatement("SELECT id FROM documents WHERE name = ? LIMIT ");
+            statement = this.connection.prepareStatement("SELECT id FROM documents WHERE name = ? LIMIT 1");
             statement.setString(1, value);
             data = statement.executeQuery();
             if (data.next()) {
@@ -480,11 +483,11 @@ public class DatabaseMysql extends Database {
             word.setName(data.getString("name"));
 
             Map<String, Integer> occurences = new HashMap<String, Integer>();
-            statement = this.connection.prepareStatement("SELECT category_id, occurrences FROM categories_words WHERE word_id = ?");
-            statement.setInt(1, word_id);
-            data = statement.executeQuery();
-            while (data.next()) {
-                occurences.put(data.getString("category_id"), data.getInt("occurrences"));
+            PreparedStatement statement2 = this.connection.prepareStatement("SELECT category_id, occurrences FROM categories_words WHERE word_id = ?");
+            statement2.setInt(1, word_id);
+            ResultSet data2 = statement2.executeQuery();
+            while (data2.next()) {
+                occurences.put(data2.getString("category_id"), data2.getInt("occurrences"));
             }
             word.setOccurrencesByCategory(occurences);
 
@@ -520,14 +523,13 @@ public class DatabaseMysql extends Database {
             word.setName(data.getString("name"));
 
             Map<String, Integer> occurences = new HashMap<String, Integer>();
-            statement = this.connection.prepareStatement("SELECT category_id, occurrences FROM categories_words WHERE word_id = ?");
-            statement.setInt(1, word_id);
-            data = statement.executeQuery();
-            while (data.next()) {
-                occurences.put(data.getString("category_id"), data.getInt("occurrences"));
+            PreparedStatement statement2 = this.connection.prepareStatement("SELECT category_id, occurrences FROM categories_words WHERE word_id = ?");
+            statement2.setInt(1, word_id);
+            ResultSet data2 = statement2.executeQuery();
+            while (data2.next()) {
+                occurences.put(data2.getString("category_id"), data2.getInt("occurrences"));
             }
             word.setOccurrencesByCategory(occurences);
-
             words.add(word);
         }
         return words;
