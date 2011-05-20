@@ -111,7 +111,11 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     private void deleteCategoryByParam(String param, String value) throws Exception {
-        // TODO
+        DBCollection collection = this.db.getCollection("categories");
+        DBObject query = new BasicDBObject();
+        query.put(param, value);
+
+        collection.remove(query);
     }
 
     /**
@@ -262,7 +266,14 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     private void deleteDocumentByParam(String param, String value) throws Exception {
-        // TODO
+        Document document = this.findDocumentByParam(param, value);
+        this.deleteDocumentWordsOcurrences(document);
+
+        DBCollection collection = this.db.getCollection("documents");
+        DBObject query = new BasicDBObject();
+        query.put(param, value);
+
+        collection.remove(query);
     }
 
     /**
