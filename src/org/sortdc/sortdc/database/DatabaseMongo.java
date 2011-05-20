@@ -61,6 +61,7 @@ public class DatabaseMongo extends Database {
             category.setName((String) obj.get("name"));
             categories.add(category);
         }
+        cursor.close();
         return categories;
     }
 
@@ -154,7 +155,7 @@ public class DatabaseMongo extends Database {
         DBObject query = new BasicDBObject();
         query.put(param, value);
 
-        DBCursor cursor = collection.find(query);
+        DBCursor cursor = collection.find(query).limit(1);
 
         if (cursor.hasNext()) {
             DBObject current_doc = cursor.next();
@@ -165,6 +166,7 @@ public class DatabaseMongo extends Database {
         } else {
             throw new Exception("Document not found");
         }
+        cursor.close();
         return document;
     }
 
@@ -312,7 +314,7 @@ public class DatabaseMongo extends Database {
         DBObject query = new BasicDBObject();
         query.put(param, value);
 
-        DBCursor cursor = collection.find(query);
+        DBCursor cursor = collection.find(query).limit(1);
 
         if (cursor.hasNext()) {
             DBObject current_doc = cursor.next();
@@ -322,6 +324,7 @@ public class DatabaseMongo extends Database {
         } else {
             throw new Exception("Word not found");
         }
+        cursor.close();
         return word;
     }
 
@@ -350,6 +353,7 @@ public class DatabaseMongo extends Database {
 
             words.add(word);
         }
+        cursor.close();
         return words;
     }
 
