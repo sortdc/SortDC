@@ -53,6 +53,7 @@ public class DatabaseMongo extends Database {
     private void init() throws Exception {
         this.addUniqueIndex("categories", "name");
         this.addUniqueIndex("documents", "name");
+        this.addUniqueIndex("documents", "category_id");
         this.addUniqueIndex("words", "name");
     }
 
@@ -186,9 +187,9 @@ public class DatabaseMongo extends Database {
 
         if (cursor.hasNext()) {
             DBObject current_doc = cursor.next();
-            document.setId((String) current_doc.get("_id"));
-            document.setName((String) current_doc.get("name"));
-            document.setCategoryId((String) current_doc.get("category_id"));
+            document.setId(current_doc.get("_id").toString());
+            document.setName(current_doc.get("name").toString());
+            document.setCategoryId(current_doc.get("category_id").toString());
             document.setWordsOccurrences((Map<String, Integer>) current_doc.get("words"));
         } else {
             throw new Exception("Document not found");
@@ -347,8 +348,8 @@ public class DatabaseMongo extends Database {
 
         if (cursor.hasNext()) {
             DBObject current_doc = cursor.next();
-            word.setId((String) current_doc.get("_id"));
-            word.setName((String) current_doc.get("name"));
+            word.setId(current_doc.get("_id").toString());
+            word.setName(current_doc.get("name").toString());
             word.setOccurrencesByCategory((Map<String, Integer>) current_doc.get("occurences"));
         } else {
             throw new Exception("Word not found");
@@ -376,8 +377,8 @@ public class DatabaseMongo extends Database {
         while (cursor.hasNext()) {
             Word word = new Word();
             DBObject current_word = cursor.next();
-            word.setId((String) current_word.get("_id"));
-            word.setName((String) current_word.get("name"));
+            word.setId(current_word.get("_id").toString());
+            word.setName(current_word.get("name").toString());
             word.setOccurrencesByCategory((Map<String, Integer>) current_word.get("occurences"));
 
             words.add(word);
