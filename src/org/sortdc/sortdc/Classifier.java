@@ -66,7 +66,7 @@ public class Classifier {
         Set<String> words_set = new HashSet<String>(tokens);
         Map<String, Integer> doc_words_occurrences = this.tokenization.getOccurrences(tokens);
         List<Word> words = this.database.findWordsByNames(words_set);
-        Map<String, Float> categories_prob = new HashMap();
+        Map<String, Float> categories_prob = new HashMap<String, Float>();
 
         int nb_words = 0;
         for (Word word : words) {
