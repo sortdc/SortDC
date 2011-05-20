@@ -298,8 +298,11 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     private void deleteDocumentByParam(String param, String value) throws Exception {
-        Document document = this.findDocumentByParam(param, value);
-        this.deleteDocumentWordsOcurrences(document);
+        try {
+            Document document = this.findDocumentByParam(param, value);
+            this.deleteDocumentWordsOcurrences(document);
+        } catch (Exception e) {
+        }
 
         DBCollection collection = this.db.getCollection("documents");
         DBObject query = new BasicDBObject();
