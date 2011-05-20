@@ -238,11 +238,12 @@ public class DatabaseMongo extends Database {
             word.setOccurrencesByCategory(occurences);
             this.saveWord(word);
         }
+        Map<String, Integer> occurences2 = new HashMap<String, Integer>();
         for (String name : names) {
             Word word = new Word();
             word.setName(name);
-            occurences.put(document.getCategoryId(), document.getWordsOccurrences().get(name));
-            word.setOccurrencesByCategory(occurences);
+            occurences2.put(document.getCategoryId(), document.getWordsOccurrences().get(name));
+            word.setOccurrencesByCategory(occurences2);
             this.saveWord(word);
         }
     }
