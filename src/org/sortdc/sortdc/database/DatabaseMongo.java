@@ -8,6 +8,7 @@ import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +32,7 @@ public class DatabaseMongo extends Database {
      */
     public void connect() throws Exception {
         if (this.db_name == null) {
-            throw new Exception("Dbname not set");
+            throw new Exception("Dbname unset");
         }
 
         Mongo init = new Mongo(this.host, this.port);
@@ -194,11 +195,12 @@ public class DatabaseMongo extends Database {
             collection.save(query);
         }
 
-        Set<String> names = document.getWordsOccurrences().keySet();
+        Set<String> names = new HashSet<String>(document.getWordsOccurrences().keySet());
         List<Word> words = this.findWordsByNames(names);
         Map<String, Integer> occurences = new HashMap<String, Integer>();
         for (Word word : words) {
             names.remove(word.getName());
+
             occurences = word.getOccurrencesByCategory();
 
             if (occurences.containsKey(document.getCategoryId())) {

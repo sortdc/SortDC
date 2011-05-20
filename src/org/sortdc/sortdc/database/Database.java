@@ -16,6 +16,9 @@ public abstract class Database implements DatabaseInterface {
      * @param host
      */
     public void setHost(String host) {
+        if(host.equals("localhost")){
+            host = "127.0.0.1";
+        }
         this.host = host;
     }
 
