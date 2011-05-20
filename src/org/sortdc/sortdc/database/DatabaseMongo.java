@@ -64,7 +64,7 @@ public class DatabaseMongo extends Database {
      * @param field
      * @throws Exception
      */
-    private void addUniqueIndex(String collection, String field) throws Exception{
+    private void addUniqueIndex(String collection, String field) throws Exception {
         DBObject obj = new BasicDBObject();
         obj.put(field, 1);
         DBObject options = new BasicDBObject();
@@ -105,6 +105,7 @@ public class DatabaseMongo extends Database {
         query.put("name", category.getName());
         if (category.getId() == null) {
             collection.insert(query);
+            category.setId(query.get("_id").toString());
         } else {
             query.put("_id", category.getId());
             collection.save(query);
@@ -401,7 +402,7 @@ public class DatabaseMongo extends Database {
         Map<String, Integer> occurences = word.getOccurrencesByCategory();
         DBObject word_occurences = new BasicDBObject();
         for (Map.Entry<String, Integer> cat_occurences : occurences.entrySet()) {
-            System.out.println(cat_occurences.getKey()+","+cat_occurences.getValue());
+            word_occurences.put(cat_occurences.getKey(), cat_occurences.getValue());
         }
         query.put("occurences", word_occurences);
 
