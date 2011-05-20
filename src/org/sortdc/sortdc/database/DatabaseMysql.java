@@ -37,15 +37,15 @@ public class DatabaseMysql extends Database {
         }
 
         this.connection = DriverManager.getConnection("jdbc:mysql://" + this.host + "/" + this.db_name, this.username, this.password);
-        this.createTables();
+        this.init();
     }
 
     /**
-     * Creates tables if they don't exist
+     * Initializes the database : creates tables if they don't exist
      * 
      * @throws Exception
      */
-    private void createTables() throws Exception {
+    private void init() throws Exception {
         FileReader input = new FileReader("config/mysql_structure.sql");
         BufferedReader br = new BufferedReader(input);
         String line, sql = "";
