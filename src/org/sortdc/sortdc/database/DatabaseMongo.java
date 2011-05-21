@@ -193,7 +193,7 @@ public class DatabaseMongo extends Database {
             document.setCategoryId(current_doc.get("category_id").toString());
             document.setWordsOccurrences((Map<String, Integer>) current_doc.get("words"));
         } else {
-            throw new Exception("Document not found");
+            throw new ObjectNotFoundException(ObjectNotFoundException.Type.DOCUMENT);
         }
         cursor.close();
         return document;
@@ -207,8 +207,12 @@ public class DatabaseMongo extends Database {
      */
     public synchronized void saveDocument(Document document) throws Exception {
         if (document.getId() != null) {
-            Document old_document = this.findDocumentById(document.getId());
-            this.deleteDocumentWordsOcurrences(old_document);
+            try {
+                Document old_document = this.findDocumentById(document.getId());
+                this.deleteDocumentWordsOcurrences(old_document);
+            } catch (ObjectNotFoundException e) {
+                document.setId(null);
+            }
         }
         DBCollection collection = this.db.getCollection("documents");
         DBObject query = new BasicDBObject();
@@ -260,12 +264,15 @@ public class DatabaseMongo extends Database {
             Map<String, Integer> occurences = document.getWordsOccurrences();
 
             for (Map.Entry<String, Integer> doc_occurences : occurences.entrySet()) {
-                Word word = this.findWordByName(doc_occurences.getKey());
-                for (Map.Entry<String, Integer> word_occurences : word.getOccurrencesByCategory().entrySet()) {
-                    if (word_occurences.getKey().equals(document.getCategoryId())) {
-                        word_occurences.setValue(word_occurences.getValue() - doc_occurences.getValue());
-                        this.saveWord(word);
+                try {
+                    Word word = this.findWordByName(doc_occurences.getKey());
+                    for (Map.Entry<String, Integer> word_occurences : word.getOccurrencesByCategory().entrySet()) {
+                        if (word_occurences.getKey().equals(document.getCategoryId())) {
+                            word_occurences.setValue(word_occurences.getValue() - doc_occurences.getValue());
+                            this.saveWord(word);
+                        }
                     }
+                } catch (ObjectNotFoundException e) {
                 }
             }
         }
@@ -299,11 +306,8 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     private void deleteDocumentByParam(String param, String value) throws Exception {
-        try {
-            Document document = this.findDocumentByParam(param, value);
-            this.deleteDocumentWordsOcurrences(document);
-        } catch (Exception e) {
-        }
+        Document document = this.findDocumentByParam(param, value);
+        this.deleteDocumentWordsOcurrences(document);
 
         DBCollection collection = this.db.getCollection("documents");
         DBObject query = new BasicDBObject();
@@ -357,7 +361,7 @@ public class DatabaseMongo extends Database {
             word.setName(current_doc.get("name").toString());
             word.setOccurrencesByCategory((Map<String, Integer>) current_doc.get("occurences"));
         } else {
-            throw new Exception("Word not found");
+            throw new ObjectNotFoundException(ObjectNotFoundException.Type.WORD);
         }
         cursor.close();
         return word;

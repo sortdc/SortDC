@@ -106,7 +106,7 @@ public class DatabaseMysql extends Database {
             statement.setInt(2, Integer.parseInt(category.getId()));
             statement.executeUpdate();
             if (statement.getUpdateCount() == 0) {
-                throw new Exception("Category not found");
+                throw new ObjectNotFoundException(ObjectNotFoundException.Type.CATEGORY);
             }
         }
     }
@@ -149,7 +149,7 @@ public class DatabaseMysql extends Database {
             if (data.next()) {
                 category_id = data.getInt("id");
             } else {
-                throw new Exception("Category not found");
+                throw new ObjectNotFoundException(ObjectNotFoundException.Type.CATEGORY);
             }
         } else {
             category_id = Integer.parseInt(value);
@@ -218,7 +218,7 @@ public class DatabaseMysql extends Database {
             document.setWordsOccurrences(words);
 
         } else {
-            throw new Exception("Document not found");
+            throw new ObjectNotFoundException(ObjectNotFoundException.Type.DOCUMENT);
         }
         return document;
     }
@@ -267,7 +267,7 @@ public class DatabaseMysql extends Database {
                 statement.setInt(3, Integer.parseInt(document.getId()));
                 statement.executeUpdate();
                 if (statement.getUpdateCount() == 0) {
-                    throw new Exception("Document not found");
+                    throw new ObjectNotFoundException(ObjectNotFoundException.Type.DOCUMENT);
                 }
             }
 
@@ -426,7 +426,7 @@ public class DatabaseMysql extends Database {
             if (data.next()) {
                 document_id = data.getInt("id");
             } else {
-                throw new Exception("Document not found");
+                throw new ObjectNotFoundException(ObjectNotFoundException.Type.DOCUMENT);
             }
         } else {
             document_id = Integer.parseInt(value);
@@ -492,7 +492,7 @@ public class DatabaseMysql extends Database {
             word.setOccurrencesByCategory(occurences);
 
         } else {
-            throw new Exception("Word not found");
+            throw new ObjectNotFoundException(ObjectNotFoundException.Type.WORD);
         }
         return word;
     }
