@@ -86,7 +86,9 @@ public class Classifier {
                         * word.getOccurrencesByCategory().get(category.getId()))
                         / new Float(word.getOccurrences());
             }
-            category_prob /= nb_words;
+            if (nb_words != 0) {
+                category_prob /= nb_words;
+            }
             categories_prob.put(category.getName(), category_prob);
         }
         return categories_prob;
