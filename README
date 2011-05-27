@@ -1,1 +1,31 @@
-First commit!
+README
+======
+
+What is SortDC ?
+----------------
+
+SortDC is a Java Open Source documents classification device.
+After defining your categories and training documents samples to
+habituate the software to your classification habits, SortDC allows
+you to automatically classify any new document in one of the defined categories.
+
+Some features :
+
+ * YAML configuration
+ * DMBS compliant (works with MySQL as well as MongoDB)
+ * Document language detection
+ * Advanced tokenization features
+
+
+License
+-------
+
+SortDC was conceived and programmed by :
+
+ - Godefroy de Compreignac <godefroy@eklaweb.com>
+ - Ronan Letellier <ronan@gimmickit.org>
+
+SortDC is released under the terms of the GNU General Public Licence v3
+(see COPYING)
+Additionnaly, if we meet some day and you think this Software is worth it,
+you can buy me a beer in return. (See http://en.wikipedia.org/wiki/Beerware)
