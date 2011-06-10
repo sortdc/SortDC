@@ -238,37 +238,20 @@ public class DatabaseMysql extends Database {
             ResultSet data;
             int category_id = Integer.parseInt(document.getCategoryId());
 
-            if (document.getId() == null) {
-                statement = this.connection.prepareStatement("INSERT INTO documents (name, category_id) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
-                statement.setString(1, document.getName());
-                statement.setInt(2, category_id);
-                statement.executeUpdate();
+            if (document.getId() != null) {
+                this.deleteDocumentById(document.getId());
+            }
+            
+            statement = this.connection.prepareStatement("INSERT INTO documents (name, category_id) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, document.getName());
+            statement.setInt(2, category_id);
+            statement.executeUpdate();
 
-                data = statement.getGeneratedKeys();
-                if (data != null && data.next()) {
-                    document_id = data.getInt(1);
-                } else {
-                    throw new Exception("Unable to add category");
-                }
-
+            data = statement.getGeneratedKeys();
+            if (data != null && data.next()) {
+                document_id = data.getInt(1);
             } else {
-
-                document_id = Integer.parseInt(document.getId());
-
-                this.deleteDocumentWordsOccurences(document_id);
-
-                statement = this.connection.prepareStatement("DELETE FROM documents_words WHERE document_id = ?");
-                statement.setInt(1, document_id);
-                statement.executeUpdate();
-
-                statement = this.connection.prepareStatement("UPDATE documents SET name = ?, category_id = ? WHERE id = ?");
-                statement.setString(1, document.getName());
-                statement.setInt(2, Integer.parseInt(document.getCategoryId()));
-                statement.setInt(3, Integer.parseInt(document.getId()));
-                statement.executeUpdate();
-                if (statement.getUpdateCount() == 0) {
-                    throw new ObjectNotFoundException(ObjectNotFoundException.Type.DOCUMENT);
-                }
+                throw new Exception("Unable to add category");
             }
 
             Set<String> words = new HashSet<String>(document.getWordsOccurrences().keySet());
@@ -360,35 +343,6 @@ public class DatabaseMysql extends Database {
     }
 
     /**
-     * Deletes words' occurrences of a document in a category
-     * 
-     * @param document_id
-     * @param category_id
-     * @throws Exception
-     */
-    private void deleteDocumentWordsOccurences(int document_id) throws Exception {
-        PreparedStatement statement;
-        ResultSet data;
-        PreparedStatement statement2 = this.connection.prepareStatement(
-                "UPDATE categories_words "
-                + "SET occurrences = GREATEST(0, occurrences - ?) "
-                + "WHERE word_id = ? AND category_id = ? "
-                + "LIMIT 1");
-        statement = this.connection.prepareStatement(
-                "SELECT dw.word_id, dw.occurrences, d.category_id "
-                + "FROM documents_words dw "
-                + "INNER JOIN documents d ON d.id = ?");
-        statement.setInt(1, document_id);
-        data = statement.executeQuery();
-        while (data.next()) {
-            statement2.setInt(1, data.getInt("occurrences"));
-            statement2.setInt(2, data.getInt("word_id"));
-            statement2.setInt(3, data.getInt("category_id"));
-            statement2.executeUpdate();
-        }
-    }
-
-    /**
      * Deletes a document given its id
      *
      * @param document_id
@@ -432,7 +386,24 @@ public class DatabaseMysql extends Database {
             document_id = Integer.parseInt(value);
         }
 
-        this.deleteDocumentWordsOccurences(document_id);
+        PreparedStatement statement2 = this.connection.prepareStatement(
+                "UPDATE categories_words "
+                + "SET occurrences = GREATEST(0, occurrences - ?) "
+                + "WHERE word_id = ? AND category_id = ? "
+                + "LIMIT 1");
+        statement = this.connection.prepareStatement(
+                "SELECT dw.word_id, dw.occurrences, d.category_id "
+                + "FROM documents_words dw "
+                + "INNER JOIN documents d ON d.id = dw.document_id "
+                + "WHERE d.id = ?");
+        statement.setInt(1, document_id);
+        data = statement.executeQuery();
+        while (data.next()) {
+            statement2.setInt(1, data.getInt("occurrences"));
+            statement2.setInt(2, data.getInt("word_id"));
+            statement2.setInt(3, data.getInt("category_id"));
+            statement2.executeUpdate();
+        }
 
         statement = this.connection.prepareStatement("DELETE FROM documents WHERE id = ?");
         statement.setInt(1, document_id);
