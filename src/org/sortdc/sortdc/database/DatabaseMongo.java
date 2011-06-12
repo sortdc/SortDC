@@ -241,7 +241,6 @@ public class DatabaseMongo extends Database {
             } else {
                 occurences.put(document.getCategoryId(), document.getWordsOccurrences().get(word.getName()));
             }
-            word.setOccurrencesByCategory(occurences);
             this.saveWord(word);
         }
         Map<String, Integer> occurences2 = new HashMap<String, Integer>();
