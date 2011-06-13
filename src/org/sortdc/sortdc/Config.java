@@ -20,6 +20,10 @@ public class Config {
     private static Config instance;
     private Map<String, Object> parameters;
     private Map<String, Classifier> classifiers = new HashMap<String, Classifier>();
+    private String webservice_uri = null;
+    public static final String WEBSERVICE = "webservice";
+    public static final String WEBSERVICE_HOST = "host";
+    public static final String WEBSERVICE_PORT = "port";
     public static final String LOG = "log";
     public static final String LOG_VERBOSE = "verbose";
     public static final String LOG_FILEPATH = "filepath";
@@ -305,5 +309,26 @@ public class Config {
             this.classifiers.put(classifier_name, classifier);
         }
         return this.classifiers;
+    }
+
+    /**
+     * Returns the Webservice URI
+     * e.g. http://localhost:1337/
+     * 
+     * @return
+     * @throws Exception 
+     */
+    public String getWebserviceURI() throws Exception {
+        if (this.webservice_uri != null) {
+            return webservice_uri;
+        }
+        try {
+            Map<String, String> webservice = this.paramToMap(this.get(WEBSERVICE));
+            String host = this.paramToString(webservice.get(WEBSERVICE_HOST));
+            int port = this.paramToInt(webservice.get(WEBSERVICE_PORT));
+            return this.webservice_uri = "http://" + host + ":" + port + "/";
+        } catch (Exception e) {
+            throw new Exception("Missing or invalid webservice configuration");
+        }
     }
 }

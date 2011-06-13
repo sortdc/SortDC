@@ -1,4 +1,8 @@
 
+webservice:
+    host: localhost
+    port: 1337
+
 log:
   verbose: true
   filepath: config/sortdc.log

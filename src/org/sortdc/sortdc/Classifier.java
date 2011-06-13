@@ -119,4 +119,13 @@ public class Classifier {
             this.categories.put(category.getName(), category);
         }
     }
+
+    /**
+     * Returns all categories
+     * 
+     * @return 
+     */
+    public Map<String, Category> getCategories() {
+        return this.categories;
+    }
 }
