@@ -305,7 +305,7 @@ public class Config {
             database.connect();
 
 
-            Classifier classifier = new Classifier(tokenization, database);
+            Classifier classifier = new Classifier(classifier_name, tokenization, database);
             this.classifiers.put(classifier_name, classifier);
         }
         return this.classifiers;

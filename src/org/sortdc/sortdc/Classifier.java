@@ -12,6 +12,7 @@ import org.sortdc.sortdc.database.Database;
 
 public class Classifier {
 
+    private String name;
     private Tokenization tokenization;
     private Database database;
     private Map<String, Category> categories;
@@ -21,10 +22,15 @@ public class Classifier {
      *
      * @param tokenization Instance of Tokenization
      */
-    public Classifier(Tokenization tokenization, Database database) throws Exception {
+    public Classifier(String name, Tokenization tokenization, Database database) throws Exception {
+        this.name = name;
         this.tokenization = tokenization;
         this.database = database;
         this.loadCategories();
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     /**
