@@ -12,10 +12,9 @@ public class MainResource {
      * Returns a new classifier resource
      * 
      * @return
-     * @throws Exception 
      */
     @Path("/classifiers")
-    public ClassifierResource getClassifierResource() throws Exception {
-        return new ClassifierResource();
+    public ClassifiersResource getClassifierResource() {
+        return new ClassifiersResource();
     }
 }

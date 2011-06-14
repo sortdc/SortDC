@@ -1,6 +1,6 @@
 package org.sortdc.sortdc.resources.dto;
 
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.sortdc.sortdc.Config;
 
@@ -13,18 +13,21 @@ public class CategoryDTO {
     public CategoryDTO() {
     }
 
-    public CategoryDTO(String classifier_id, String id) throws Exception {
+    public CategoryDTO(String classifier_id, String id) {
         this.id = id;
-        this.href = Config.getInstance().getWebserviceURI() + "classifiers/" + classifier_id + "/categories/" + id;
+        try {
+            this.href = Config.getInstance().getWebserviceURI() + "classifiers/" + classifier_id + "/categories/" + id;
+        } catch (Exception e) {
+        }
     }
 
-    @XmlElement
-    public String getId() throws Exception {
+    @XmlAttribute
+    public String getId() {
         return this.id;
     }
 
-    @XmlElement
-    public String getHref() throws Exception {
+    @XmlAttribute
+    public String getHref() {
         return this.href;
     }
 }

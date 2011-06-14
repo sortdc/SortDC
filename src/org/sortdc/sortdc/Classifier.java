@@ -134,4 +134,15 @@ public class Classifier {
     public Map<String, Category> getCategories() {
         return this.categories;
     }
+
+    /**
+     * Finds a document given its name
+     *
+     * @param document_name document name
+     * @return document matching id
+     * @throws ObjectNotFoundException or Exception
+     */
+    public Document findDocumentByName(String document_name) throws Exception {
+        return this.database.findDocumentByName(document_name);
+    }
 }

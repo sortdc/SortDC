@@ -29,6 +29,7 @@ public class Main {
             System.out.println("Hit enter to stop it...");
             System.in.read();
             threadSelector.stopEndpoint();
+            Log.getInstance().add("Webservice stopped.");
             System.exit(0);
 
         } catch (Exception e) {

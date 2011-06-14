@@ -1,5 +1,6 @@
 package org.sortdc.sortdc.resources.dto;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.sortdc.sortdc.Config;
@@ -9,32 +10,35 @@ public class ClassifierDTO {
 
     private String id;
     private String href;
-    private String categories_href;
+    private CategoriesDTO categories;
 
     public ClassifierDTO() {
     }
 
-    public ClassifierDTO(String id) throws Exception {
+    public ClassifierDTO(String id) {
         this.id = id;
-        this.href = Config.getInstance().getWebserviceURI() + "classifiers/" + id;
+        try {
+            this.href = Config.getInstance().getWebserviceURI() + "classifiers/" + id;
+        } catch (Exception e) {
+        }
     }
 
-    @XmlElement
-    public String getId() throws Exception {
+    @XmlAttribute
+    public String getId() {
         return this.id;
     }
 
-    @XmlElement
-    public String getHref() throws Exception {
+    @XmlAttribute
+    public String getHref() {
         return this.href;
     }
 
     @XmlElement
-    public String getCategories_href() throws Exception {
-        return this.categories_href;
+    public CategoriesDTO getCategories() {
+        return this.categories;
     }
 
-    public void enableCategories_href(boolean enable) {
-        this.categories_href = enable ? this.href + "/categories" : null;
+    public void setCategories(CategoriesDTO categories) {
+        this.categories = categories;
     }
 }
