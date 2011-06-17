@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.dao.Document;
 import org.sortdc.sortdc.dao.Word;
@@ -51,8 +52,6 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     private void init() throws Exception {
-        this.addUniqueIndex("categories", "name");
-        this.addUniqueIndex("documents", "name");
         this.addUniqueIndex("documents", "category_id");
         this.addUniqueIndex("words", "name");
     }
@@ -86,7 +85,6 @@ public class DatabaseMongo extends Database {
             DBObject obj = cursor.next();
             Category category = new Category();
             category.setId(obj.get("_id").toString());
-            category.setName(obj.get("name").toString());
             categories.add(category);
         }
         cursor.close();
@@ -100,16 +98,13 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public synchronized void saveCategory(Category category) throws Exception {
+        if (category.getId() == null) {
+            throw new Exception("You must set a category's id");
+        }
         DBCollection collection = this.db.getCollection("categories");
         DBObject query = new BasicDBObject();
-        query.put("name", category.getName());
-        if (category.getId() == null) {
-            collection.insert(query);
-            category.setId(query.get("_id").toString());
-        } else {
-            query.put("_id", category.getId());
-            collection.save(query);
-        }
+        query.put("_id", category.getId());
+        collection.save(query);
     }
 
     /**
@@ -119,31 +114,9 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public void deleteCategoryById(String category_id) throws Exception {
-        this.deleteCategoryByParam("_id", category_id);
-    }
-
-    /**
-     * Deletes a category given its name
-     *
-     * @param category_id
-     * @throws Exception
-     */
-    public void deleteCategoryByName(String category_name) throws Exception {
-        this.deleteCategoryByParam("name", category_name);
-    }
-
-    /**
-     * Deletes a category by a parameter (id or name)
-     *
-     * @param param search parameter
-     * @param value id or name
-     * @throws Exception
-     */
-    private void deleteCategoryByParam(String param, String value) throws Exception {
         DBCollection collection = this.db.getCollection("categories");
         DBObject query = new BasicDBObject();
-        query.put(param, value);
-
+        query.put("_id", category_id);
         collection.remove(query);
     }
 
@@ -154,42 +127,18 @@ public class DatabaseMongo extends Database {
      * @return document matching id
      * @throws Exception
      */
-    public Document findDocumentById(String id) throws Exception {
-        return this.findDocumentByParam("_id", id);
-    }
-
-    /**
-     * Finds a document given its name
-     *
-     * @param name document name
-     * @return document matching name
-     * @throws Exception
-     */
-    public Document findDocumentByName(String name) throws Exception {
-        return this.findDocumentByParam("name", name);
-    }
-
-    /**
-     * Finds a document by a parameter (id or name)
-     *
-     * @param param search parameter
-     * @param name document name
-     * @return document matching name
-     * @throws Exception
-     */
-    private Document findDocumentByParam(String param, String value) throws Exception {
+    public Document findDocumentById(String document_id) throws Exception {
         Document document = new Document();
 
         DBCollection collection = this.db.getCollection("documents");
         DBObject query = new BasicDBObject();
-        query.put(param, value);
+        query.put("_id", document_id);
 
         DBCursor cursor = collection.find(query).limit(1);
 
         if (cursor.hasNext()) {
             DBObject current_doc = cursor.next();
             document.setId(current_doc.get("_id").toString());
-            document.setName(current_doc.get("name").toString());
             document.setCategoryId(current_doc.get("category_id").toString());
             document.setWordsOccurrences((Map<String, Integer>) current_doc.get("words"));
         } else {
@@ -206,25 +155,29 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public synchronized void saveDocument(Document document) throws Exception {
-        if (document.getId() != null) {
-            try {
-                Document old_document = this.findDocumentById(document.getId());
-                this.deleteDocumentWordsOcurrences(old_document);
-            } catch (ObjectNotFoundException e) {
-                document.setId(null);
-            }
+        String category_id = document.getCategoryId();
+        if (category_id == null) {
+            throw new Exception("You must set a category's id");
         }
+        
+        String document_id;
+        if (document.getId() == null) {
+            document_id = UUID.randomUUID().toString();
+        } else {
+            document_id = document.getId();
+            this.deleteDocumentWordsOcurrences(document);
+        }
+
         DBCollection collection = this.db.getCollection("documents");
         DBObject query = new BasicDBObject();
-        query.put("name", document.getName());
-        query.put("category_id", document.getCategoryId());
+        query.put("category_id", category_id);
         query.put("words", document.getWordsOccurrences());
 
-        if (document.getId() == null) {
+        if (document_id == null) {
             collection.insert(query);
             document.setId(query.get("_id").toString());
         } else {
-            query.put("_id", document.getId());
+            query.put("_id", document_id);
             collection.save(query);
         }
 
@@ -236,10 +189,10 @@ public class DatabaseMongo extends Database {
 
             occurences = word.getOccurrencesByCategory();
 
-            if (occurences.containsKey(document.getCategoryId())) {
-                occurences.put(document.getCategoryId(), occurences.get(document.getCategoryId()) + document.getWordsOccurrences().get(word.getName()));
+            if (occurences.containsKey(category_id)) {
+                occurences.put(category_id, occurences.get(category_id) + document.getWordsOccurrences().get(word.getName()));
             } else {
-                occurences.put(document.getCategoryId(), document.getWordsOccurrences().get(word.getName()));
+                occurences.put(category_id, document.getWordsOccurrences().get(word.getName()));
             }
             this.saveWord(word);
         }
@@ -247,7 +200,7 @@ public class DatabaseMongo extends Database {
         for (String name : names) {
             Word word = new Word();
             word.setName(name);
-            occurences2.put(document.getCategoryId(), document.getWordsOccurrences().get(name));
+            occurences2.put(category_id, document.getWordsOccurrences().get(name));
             word.setOccurrencesByCategory(occurences2);
             this.saveWord(word);
         }
@@ -259,20 +212,18 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     private void deleteDocumentWordsOcurrences(Document document) throws Exception {
-        if (document.getId() != null) {
-            Map<String, Integer> occurences = document.getWordsOccurrences();
+        Map<String, Integer> occurences = document.getWordsOccurrences();
 
-            for (Map.Entry<String, Integer> doc_occurences : occurences.entrySet()) {
-                try {
-                    Word word = this.findWordByName(doc_occurences.getKey());
-                    for (Map.Entry<String, Integer> word_occurences : word.getOccurrencesByCategory().entrySet()) {
-                        if (word_occurences.getKey().equals(document.getCategoryId())) {
-                            word_occurences.setValue(word_occurences.getValue() - doc_occurences.getValue());
-                            this.saveWord(word);
-                        }
+        for (Map.Entry<String, Integer> doc_occurences : occurences.entrySet()) {
+            try {
+                Word word = this.findWordByName(doc_occurences.getKey());
+                for (Map.Entry<String, Integer> word_occurences : word.getOccurrencesByCategory().entrySet()) {
+                    if (word_occurences.getKey().equals(document.getCategoryId())) {
+                        word_occurences.setValue(word_occurences.getValue() - doc_occurences.getValue());
+                        this.saveWord(word);
                     }
-                } catch (ObjectNotFoundException e) {
                 }
+            } catch (ObjectNotFoundException e) {
             }
         }
     }
@@ -284,34 +235,12 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public void deleteDocumentById(String document_id) throws Exception {
-        this.deleteDocumentByParam("_id", document_id);
-    }
-
-    /**
-     * Deletes a document given its name
-     *
-     * @param document_name
-     * @throws Exception
-     */
-    public void deleteDocumentByName(String document_name) throws Exception {
-        this.deleteDocumentByParam("name", document_name);
-    }
-
-    /**
-     * Deletes a document by a parameter (id or name)
-     *
-     * @param param search parameter
-     * @param value id or name
-     * @throws Exception
-     */
-    private void deleteDocumentByParam(String param, String value) throws Exception {
-        Document document = this.findDocumentByParam(param, value);
+        Document document = this.findDocumentById(document_id);
         this.deleteDocumentWordsOcurrences(document);
 
         DBCollection collection = this.db.getCollection("documents");
         DBObject query = new BasicDBObject();
-        query.put(param, value);
-
+        query.put("_id", document_id);
         collection.remove(query);
     }
 

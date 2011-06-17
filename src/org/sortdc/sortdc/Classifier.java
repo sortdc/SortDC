@@ -9,10 +9,11 @@ import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.dao.Document;
 import org.sortdc.sortdc.dao.Word;
 import org.sortdc.sortdc.database.Database;
+import org.sortdc.sortdc.database.ObjectNotFoundException;
 
 public class Classifier {
 
-    private String name;
+    private String id;
     private Tokenization tokenization;
     private Database database;
     private Map<String, Category> categories;
@@ -22,15 +23,15 @@ public class Classifier {
      *
      * @param tokenization Instance of Tokenization
      */
-    public Classifier(String name, Tokenization tokenization, Database database) throws Exception {
-        this.name = name;
+    public Classifier(String id, Tokenization tokenization, Database database) throws Exception {
+        this.id = id;
         this.tokenization = tokenization;
         this.database = database;
         this.loadCategories();
     }
 
-    public String getName() {
-        return this.name;
+    public String getId() {
+        return this.id;
     }
 
     /**
@@ -40,24 +41,34 @@ public class Classifier {
      * @param category_id Category's id
      * @throws Exception
      */
-    public void train(String name, String text, String category_name) throws Exception {
-        if (!this.categories.containsKey(category_name)) {
-            this.addCategory(category_name);
+    public Document train(String document_id, String text, String category_id) throws Exception {
+        Document document;
+        try {
+            if (document_id == null) {
+                throw new Exception("Document id missing");
+            }
+            document = this.database.findDocumentById(document_id);
+        } catch (Exception e) {
+            document = new Document();
+            document.setId(document_id);
         }
+        return this.train(document, text, category_id);
+    }
+
+    public Document train(Document document, String text, String category_id) throws Exception {
+        if (!this.categories.containsKey(category_id)) {
+            this.addCategory(category_id);
+        }
+        document.setCategoryId(category_id);
+        return this.train(document, text);
+    }
+
+    public Document train(Document document, String text) throws Exception {
         List<String> words = tokenization.extract(text);
         Map<String, Integer> occurrences = this.tokenization.getOccurrences(words);
-
-        Document doc;
-        try {
-            doc = this.database.findDocumentByName(name);
-        } catch (Exception e) {
-            doc = new Document();
-        }
-        doc.setName(name);
-        doc.setCategoryId(this.categories.get(category_name).getId());
-        doc.setWordsOccurrences(occurrences);
-
-        this.database.saveDocument(doc);
+        document.setWordsOccurrences(occurrences);
+        this.database.saveDocument(document);
+        return document;
     }
 
     /**
@@ -95,7 +106,7 @@ public class Classifier {
             if (nb_words != 0) {
                 category_prob /= nb_words;
             }
-            categories_prob.put(category.getName(), category_prob);
+            categories_prob.put(category.getId(), category_prob);
         }
         return categories_prob;
     }
@@ -103,14 +114,14 @@ public class Classifier {
     /**
      * Creates a category
      *
-     * @param name Category's unique name
+     * @param id Category's unique id
      * @throws Exception
      */
-    public void addCategory(String name) throws Exception {
+    public void addCategory(String id) throws Exception {
         Category category = new Category();
-        category.setName(name);
+        category.setId(id);
         this.database.saveCategory(category);
-        this.categories.put(name, category);
+        this.categories.put(id, category);
     }
 
     /**
@@ -122,7 +133,7 @@ public class Classifier {
         this.categories = new HashMap<String, Category>();
         List<Category> categories_list = this.database.findAllCategories();
         for (Category category : categories_list) {
-            this.categories.put(category.getName(), category);
+            this.categories.put(category.getId(), category);
         }
     }
 
@@ -135,14 +146,21 @@ public class Classifier {
         return this.categories;
     }
 
+    public Category getCategory(String category_id) throws ObjectNotFoundException {
+        if (!this.categories.containsKey(category_id)) {
+            throw new ObjectNotFoundException(ObjectNotFoundException.Type.CATEGORY);
+        }
+        return this.categories.get(category_id);
+    }
+
     /**
-     * Finds a document given its name
+     * Finds a document given its id
      *
-     * @param document_name document name
+     * @param document_id document id
      * @return document matching id
      * @throws ObjectNotFoundException or Exception
      */
-    public Document findDocumentByName(String document_name) throws Exception {
-        return this.database.findDocumentByName(document_name);
+    public Document findDocumentById(String document_id) throws Exception {
+        return this.database.findDocumentById(document_id);
     }
 }

@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.dao.Document;
 import org.sortdc.sortdc.dao.Word;
@@ -72,12 +73,11 @@ public class DatabaseMysql extends Database {
      */
     public List<Category> findAllCategories() throws Exception {
         List<Category> categories = new ArrayList<Category>();
-        PreparedStatement statement = this.connection.prepareStatement("SELECT id, name FROM categories");
+        PreparedStatement statement = this.connection.prepareStatement("SELECT id FROM categories");
         ResultSet data = statement.executeQuery();
         while (data.next()) {
             Category category = new Category();
             category.setId(data.getString("id"));
-            category.setName(data.getString("name"));
             categories.add(category);
         }
         return categories;
@@ -91,24 +91,11 @@ public class DatabaseMysql extends Database {
      */
     public synchronized void saveCategory(Category category) throws Exception {
         if (category.getId() == null) {
-            PreparedStatement statement = this.connection.prepareStatement("INSERT INTO categories (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
-            statement.setString(1, category.getName());
-            statement.executeUpdate();
-            ResultSet data = statement.getGeneratedKeys();
-            if (data != null && data.next()) {
-                category.setId(Integer.toString(data.getInt(1)));
-            } else {
-                throw new Exception("Unable to add category");
-            }
-        } else {
-            PreparedStatement statement = this.connection.prepareStatement("UPDATE categories SET name = ? WHERE id = ?");
-            statement.setString(1, category.getName());
-            statement.setInt(2, Integer.parseInt(category.getId()));
-            statement.executeUpdate();
-            if (statement.getUpdateCount() == 0) {
-                throw new ObjectNotFoundException(ObjectNotFoundException.Type.CATEGORY);
-            }
+            throw new Exception("You must set a category's id");
         }
+        PreparedStatement statement = this.connection.prepareStatement("REPLACE INTO categories (id) VALUES (?)");
+        statement.setString(1, category.getId());
+        statement.executeUpdate();
     }
 
     /**
@@ -118,45 +105,8 @@ public class DatabaseMysql extends Database {
      * @throws Exception
      */
     public void deleteCategoryById(String category_id) throws Exception {
-        this.deleteCategoryByParam("id", category_id);
-    }
-
-    /**
-     * Deletes a category given its name
-     *
-     * @param category_id
-     * @throws Exception
-     */
-    public void deleteCategoryByName(String category_name) throws Exception {
-        this.deleteCategoryByParam("name", category_name);
-    }
-
-    /**
-     * Deletes a category by a parameter (id or name)
-     *
-     * @param param search parameter
-     * @param value id or name
-     * @throws Exception
-     */
-    private void deleteCategoryByParam(String param, String value) throws Exception {
-        PreparedStatement statement;
-        ResultSet data;
-        int category_id;
-        if (param.equals("name")) {
-            statement = this.connection.prepareStatement("SELECT id FROM category WHERE name = ? LIMIT ");
-            statement.setString(1, value);
-            data = statement.executeQuery();
-            if (data.next()) {
-                category_id = data.getInt("id");
-            } else {
-                throw new ObjectNotFoundException(ObjectNotFoundException.Type.CATEGORY);
-            }
-        } else {
-            category_id = Integer.parseInt(value);
-        }
-
-        statement = this.connection.prepareStatement("DELETE FROM categories WHERE id = ?");
-        statement.setInt(1, category_id);
+        PreparedStatement statement = this.connection.prepareStatement("DELETE FROM categories WHERE id = ?");
+        statement.setString(1, category_id);
         statement.executeUpdate();
     }
 
@@ -167,42 +117,17 @@ public class DatabaseMysql extends Database {
      * @return document matching id
      * @throws Exception
      */
-    public Document findDocumentById(String id) throws Exception {
-        return this.findDocumentByParam("id", id);
-    }
-
-    /**
-     * Finds a document given its name
-     *
-     * @param name document name
-     * @return document matching name
-     * @throws Exception
-     */
-    public Document findDocumentByName(String name) throws Exception {
-        return this.findDocumentByParam("name", name);
-    }
-
-    /**
-     * Finds a document by a parameter (id or name)
-     *
-     * @param param search parameter
-     * @param name document name
-     * @return document matching name
-     * @throws Exception
-     */
-    private Document findDocumentByParam(String param, String value) throws Exception {
+    public Document findDocumentById(String document_id) throws Exception {
         Document document = new Document();
         PreparedStatement statement;
         ResultSet data;
 
-        statement = this.connection.prepareStatement("SELECT id, name, category_id FROM documents WHERE " + param + " = ? LIMIT 1");
-        statement.setString(1, value);
+        statement = this.connection.prepareStatement("SELECT id, category_id FROM documents WHERE id = ? LIMIT 1");
+        statement.setString(1, document_id);
         data = statement.executeQuery();
         if (data.next()) {
-            int document_id = data.getInt("id");
-            document.setId(Integer.toString(document_id));
-            document.setName(data.getString("name"));
-            document.setCategoryId(Integer.toString(data.getInt("category_id")));
+            document.setId(data.getString("id"));
+            document.setCategoryId(data.getString("category_id"));
 
             Map<String, Integer> words = new HashMap<String, Integer>();
             statement = this.connection.prepareStatement(
@@ -210,7 +135,7 @@ public class DatabaseMysql extends Database {
                     + "FROM documents_words dw "
                     + "INNER JOIN words w ON w.id = dw.word_id "
                     + "WHERE dw.document_id = ?");
-            statement.setInt(1, document_id);
+            statement.setString(1, document_id);
             data = statement.executeQuery();
             while (data.next()) {
                 words.put(data.getString("name"), data.getInt("occurrences"));
@@ -230,29 +155,29 @@ public class DatabaseMysql extends Database {
      * @throws Exception
      */
     public synchronized void saveDocument(Document document) throws Exception {
-        Integer document_id = null;
         this.connection.setAutoCommit(false);
         try {
             PreparedStatement statement;
             PreparedStatement statement2;
             ResultSet data;
-            int category_id = Integer.parseInt(document.getCategoryId());
-
-            if (document.getId() != null) {
-                this.deleteDocumentById(document.getId());
-            }
             
-            statement = this.connection.prepareStatement("INSERT INTO documents (name, category_id) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
-            statement.setString(1, document.getName());
-            statement.setInt(2, category_id);
-            statement.executeUpdate();
-
-            data = statement.getGeneratedKeys();
-            if (data != null && data.next()) {
-                document_id = data.getInt(1);
-            } else {
-                throw new Exception("Unable to add category");
+            String category_id = document.getCategoryId();
+            if (category_id == null) {
+                throw new Exception("You must set a category's id");
             }
+
+            String document_id;
+            if (document.getId() == null) {
+                document_id = UUID.randomUUID().toString();
+            } else {
+                document_id = document.getId();
+                this.deleteDocumentById(document_id);
+            }
+
+            statement = this.connection.prepareStatement("REPLACE INTO documents (id, category_id) VALUES (?, ?)");
+            statement.setString(1, document_id);
+            statement.setString(2, category_id);
+            statement.executeUpdate();
 
             Set<String> words = new HashSet<String>(document.getWordsOccurrences().keySet());
             Map<String, Integer> words_ids = new HashMap<String, Integer>();
@@ -290,7 +215,7 @@ public class DatabaseMysql extends Database {
                     System.out.println(document.getWordsOccurrences());
                     System.out.println(word.getKey());
                 }
-                statement.setInt(1, document_id);
+                statement.setString(1, document_id);
                 statement.setInt(2, (Integer) word.getValue());
                 statement.setInt(3, document.getWordsOccurrences().get((String) word.getKey()));
                 statement.executeUpdate();
@@ -308,13 +233,13 @@ public class DatabaseMysql extends Database {
             for (Map.Entry<String, Integer> word : words_ids.entrySet()) {
                 statement.setInt(i++, (Integer) word.getValue());
             }
-            statement.setInt(i, category_id);
+            statement.setString(i, category_id);
             data = statement.executeQuery();
             while (data.next()) {
                 int word_id = data.getInt("word_id");
                 statement2.setInt(1, document.getWordsOccurrences().get((String) words_names.get(word_id)));
                 statement2.setInt(2, word_id);
-                statement2.setInt(3, category_id);
+                statement2.setString(3, category_id);
                 statement2.executeUpdate();
                 words_names.remove(word_id);
             }
@@ -325,13 +250,13 @@ public class DatabaseMysql extends Database {
                         + "(word_id, category_id, occurrences) "
                         + "VALUES (?, ?, ?)");
                 statement.setInt(1, word.getKey());
-                statement.setInt(2, category_id);
+                statement.setString(2, category_id);
                 statement.setInt(3, document.getWordsOccurrences().get((String) word.getValue()));
                 statement.executeUpdate();
             }
 
             this.connection.commit();
-            document.setId(Integer.toString(document_id));
+            document.setId(document_id);
 
         } catch (Exception e) {
             this.connection.rollback();
@@ -348,65 +273,28 @@ public class DatabaseMysql extends Database {
      * @param document_id
      * @throws Exception
      */
-    public void deleteDocumentById(String document_id) throws Exception {
-        this.deleteDocumentByParam("id", document_id);
-    }
-
-    /**
-     * Deletes a document given its name
-     *
-     * @param document_name
-     * @throws Exception
-     */
-    public void deleteDocumentByName(String document_name) throws Exception {
-        this.deleteDocumentByParam("name", document_name);
-    }
-
-    /**
-     * Deletes a document by a parameter (id or name)
-     *
-     * @param param search parameter
-     * @param value id or name
-     * @throws Exception
-     */
-    private synchronized void deleteDocumentByParam(String param, String value) throws Exception {
-        PreparedStatement statement;
-        ResultSet data;
-        int document_id;
-        if (param.equals("name")) {
-            statement = this.connection.prepareStatement("SELECT id FROM documents WHERE name = ? LIMIT 1");
-            statement.setString(1, value);
-            data = statement.executeQuery();
-            if (data.next()) {
-                document_id = data.getInt("id");
-            } else {
-                throw new ObjectNotFoundException(ObjectNotFoundException.Type.DOCUMENT);
-            }
-        } else {
-            document_id = Integer.parseInt(value);
-        }
-
+    public synchronized void deleteDocumentById(String document_id) throws Exception {
         PreparedStatement statement2 = this.connection.prepareStatement(
                 "UPDATE categories_words "
                 + "SET occurrences = GREATEST(0, occurrences - ?) "
                 + "WHERE word_id = ? AND category_id = ? "
                 + "LIMIT 1");
-        statement = this.connection.prepareStatement(
+        PreparedStatement statement = this.connection.prepareStatement(
                 "SELECT dw.word_id, dw.occurrences, d.category_id "
                 + "FROM documents_words dw "
                 + "INNER JOIN documents d ON d.id = dw.document_id "
                 + "WHERE d.id = ?");
-        statement.setInt(1, document_id);
-        data = statement.executeQuery();
+        statement.setString(1, document_id);
+        ResultSet data = statement.executeQuery();
         while (data.next()) {
             statement2.setInt(1, data.getInt("occurrences"));
             statement2.setInt(2, data.getInt("word_id"));
-            statement2.setInt(3, data.getInt("category_id"));
+            statement2.setString(3, data.getString("category_id"));
             statement2.executeUpdate();
         }
 
         statement = this.connection.prepareStatement("DELETE FROM documents WHERE id = ?");
-        statement.setInt(1, document_id);
+        statement.setString(1, document_id);
         statement.executeUpdate();
     }
 

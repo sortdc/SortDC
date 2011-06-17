@@ -1,7 +1,6 @@
 package org.sortdc.sortdc.resources;
 
 import com.sun.jersey.api.NotFoundException;
-import java.util.Map;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -10,6 +9,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import org.sortdc.sortdc.Classifier;
 import org.sortdc.sortdc.dao.Category;
+import org.sortdc.sortdc.database.ObjectNotFoundException;
 import org.sortdc.sortdc.resources.dto.CategoriesDTO;
 import org.sortdc.sortdc.resources.dto.CategoryDTO;
 
@@ -29,14 +29,14 @@ public class CategoriesResource {
      */
     @GET
     public CategoriesDTO get() {
-        CategoriesDTO categories_dto = new CategoriesDTO(this.classifier.getName());
+        CategoriesDTO categories_dto = new CategoriesDTO(this.classifier.getId());
         for (String category_id : this.classifier.getCategories().keySet()) {
-            CategoryDTO category_dto = new CategoryDTO(this.classifier.getName(), category_id);
+            CategoryDTO category_dto = new CategoryDTO(this.classifier.getId(), category_id);
             categories_dto.add(category_dto);
         }
         return categories_dto;
     }
-    
+
     /**
      * Deletes all classifier's categories and documents
      * 
@@ -55,10 +55,13 @@ public class CategoriesResource {
      */
     @Path("/{category: [a-zA-Z0-9_-]+}")
     public CategoryResource getCategoryResource(@PathParam("category") String category_id) {
-        Map<String, Category> categories = this.classifier.getCategories();
-        if (!categories.containsKey(category_id)) {
-            throw new NotFoundException();
+        Category category;
+        try {
+            category = this.classifier.getCategory(category_id);
+        } catch (ObjectNotFoundException e) {
+            category = new Category();
+            category.setId(category_id);
         }
-        return new CategoryResource(this.classifier, categories.get(category_id));
+        return new CategoryResource(this.classifier, category);
     }
 }

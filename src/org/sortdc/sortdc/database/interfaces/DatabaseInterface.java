@@ -26,17 +26,11 @@ public interface DatabaseInterface {
 
     public void deleteCategoryById(String category_id) throws Exception;
 
-    public void deleteCategoryByName(String category_name) throws Exception;
-
-    public Document findDocumentById(String id) throws Exception;
-
-    public Document findDocumentByName(String name) throws Exception;
+    public Document findDocumentById(String document_id) throws Exception;
 
     public void saveDocument(Document document) throws Exception;
 
     public void deleteDocumentById(String document_id) throws Exception;
-
-    public void deleteDocumentByName(String document_name) throws Exception;
 
     public Word findWordById(String id) throws Exception;
 

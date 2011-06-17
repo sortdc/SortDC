@@ -11,12 +11,12 @@ classifiers:
 
   thematics:
     database:
-      dbms: mongodb
-      host: localhost
-      port: 27017
+      dbms: mysql
+      #host: localhost
+      #port: 27017
       dbname: sortdc_thematics
-      #username: azerty
-      #password: azerty
+      username: sortdc_thematics
+      password: azerty
     lang: french
     stemming: true
     autotrain: true

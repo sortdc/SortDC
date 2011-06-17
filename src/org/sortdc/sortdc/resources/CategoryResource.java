@@ -27,10 +27,10 @@ public class CategoryResource {
      */
     @GET
     public CategoryDTO get() {
-        CategoryDTO category_dto = new CategoryDTO(this.classifier.getName(), this.category.getName());
+        CategoryDTO category_dto = new CategoryDTO(this.classifier.getId(), this.category.getId());
         return category_dto;
     }
-    
+
     /**
      * Deletes category and its documents
      * 
@@ -42,13 +42,12 @@ public class CategoryResource {
     }
 
     /**
-     * Retrieves documents of the category
+     * Returns a new documents resource
      * 
      * @return
      */
     @Path("/documents")
-    @GET
-    public void getDocuments() {
-        // TODO
+    public DocumentsResource getDocuments() {
+        return new DocumentsResource(this.classifier, this.category);
     }
 }
