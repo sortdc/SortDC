@@ -39,7 +39,7 @@ public class TokenizationTest {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(true);
             instance.disableStemming();
-            instance.setWordsMinLength(0);
+            instance.setTokensMinLength(0);
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList("hello", "world", "grand-mere", "fait", "des", "confitures", "avec", "application");
             assertEquals(expected.size(), test.size());
@@ -57,7 +57,7 @@ public class TokenizationTest {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(true);
             instance.enableStemming(this.testLang);
-            instance.setWordsMinLength(0);
+            instance.setTokensMinLength(0);
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList("hello", "world", "grand-mer", "fait", "de", "confitur", "avec", "appliqu");
             assertEquals(expected.size(), test.size());
@@ -76,7 +76,7 @@ public class TokenizationTest {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(true);
             instance.disableStemming();
-            instance.setWordsMinLength(0);
+            instance.setTokensMinLength(0);
             instance.setStopWords(stopWords);
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList("hello", "world", "grand-mere", "des", "confitures", "application");
@@ -138,7 +138,7 @@ public class TokenizationTest {
             instance.enableStemming(this.testLang);
             instance.setNgramsWords(Arrays.asList(2, 3));
             instance.setNgramsChars(Arrays.asList(2, 3));
-            instance.setWordsMinLength(3);
+            instance.setTokensMinLength(3);
             instance.setStopWords(stopWords);
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList(

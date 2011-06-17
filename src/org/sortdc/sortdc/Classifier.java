@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.dao.Document;
-import org.sortdc.sortdc.dao.Word;
+import org.sortdc.sortdc.dao.Token;
 import org.sortdc.sortdc.database.Database;
 import org.sortdc.sortdc.database.ObjectNotFoundException;
 
@@ -64,9 +64,9 @@ public class Classifier {
     }
 
     public Document train(Document document, String text) throws Exception {
-        List<String> words = tokenization.extract(text);
-        Map<String, Integer> occurrences = this.tokenization.getOccurrences(words);
-        document.setWordsOccurrences(occurrences);
+        List<String> tokens = tokenization.extract(text);
+        Map<String, Integer> occurrences = this.tokenization.getOccurrences(tokens);
+        document.setTokensOccurrences(occurrences);
         this.database.saveDocument(document);
         return document;
     }
@@ -79,32 +79,32 @@ public class Classifier {
      * @throws Exception
      */
     public Map<String, Float> categorize(String text) throws Exception {
-        List<String> tokens = tokenization.extract(text);
-        Set<String> words_set = new HashSet<String>(tokens);
-        Map<String, Integer> doc_words_occurrences = this.tokenization.getOccurrences(tokens);
-        List<Word> words = this.database.findWordsByNames(words_set);
+        List<String> text_tokens = tokenization.extract(text);
+        Set<String> tokens_set = new HashSet<String>(text_tokens);
+        Map<String, Integer> doc_tokens_occurrences = this.tokenization.getOccurrences(text_tokens);
+        List<Token> tokens = this.database.findTokensByNames(tokens_set);
         Map<String, Float> categories_prob = new HashMap<String, Float>();
 
-        int nb_words = 0;
-        for (Word word : words) {
-            if (doc_words_occurrences.containsKey(word.getName())) {
-                nb_words += doc_words_occurrences.get(word.getName());
+        int nb_tokens = 0;
+        for (Token token : tokens) {
+            if (doc_tokens_occurrences.containsKey(token.getName())) {
+                nb_tokens += doc_tokens_occurrences.get(token.getName());
             }
         }
 
         for (Category category : this.categories.values()) {
             Float category_prob = 0f;
-            for (Word word : words) {
-                if (!doc_words_occurrences.containsKey(word.getName()) || !word.getOccurrencesByCategory().containsKey(category.getId())) {
+            for (Token token : tokens) {
+                if (!doc_tokens_occurrences.containsKey(token.getName()) || !token.getOccurrencesByCategory().containsKey(category.getId())) {
                     continue;
                 }
                 category_prob +=
-                        new Float(doc_words_occurrences.get(word.getName())
-                        * word.getOccurrencesByCategory().get(category.getId()))
-                        / new Float(word.getOccurrences());
+                        new Float(doc_tokens_occurrences.get(token.getName())
+                        * token.getOccurrencesByCategory().get(category.getId()))
+                        / new Float(token.getOccurrences());
             }
-            if (nb_words != 0) {
-                category_prob /= nb_words;
+            if (nb_tokens != 0) {
+                category_prob /= nb_tokens;
             }
             categories_prob.put(category.getId(), category_prob);
         }

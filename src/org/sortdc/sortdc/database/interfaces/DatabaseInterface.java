@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Set;
 import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.dao.Document;
-import org.sortdc.sortdc.dao.Word;
+import org.sortdc.sortdc.dao.Token;
 
 public interface DatabaseInterface {
 
@@ -32,9 +32,9 @@ public interface DatabaseInterface {
 
     public void deleteDocumentById(String document_id) throws Exception;
 
-    public Word findWordById(String id) throws Exception;
+    public Token findTokenById(String id) throws Exception;
 
-    public Word findWordByName(String name) throws Exception;
+    public Token findTokenByName(String name) throws Exception;
 
-    public List<Word> findWordsByNames(Set<String> names) throws Exception;
+    public List<Token> findTokensByNames(Set<String> names) throws Exception;
 }

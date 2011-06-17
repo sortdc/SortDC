@@ -2,7 +2,7 @@ package org.sortdc.sortdc.dao;
 
 import java.util.Map;
 
-public class Word {
+public class Token {
 
     private String id;
     private String name;

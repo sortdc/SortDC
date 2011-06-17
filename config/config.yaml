@@ -11,17 +11,17 @@ classifiers:
 
   thematics:
     database:
-      dbms: mysql
-      #host: localhost
-      #port: 27017
+      dbms: mongodb
+      host: localhost
+      port: 27017
       dbname: sortdc_thematics
-      username: sortdc_thematics
-      password: azerty
+      #username: azerty
+      #password: azerty
     lang: french
     stemming: true
     autotrain: true
     autotrain_threshold: 0.7
-    words_min_length: 3
+    tokens_min_length: 3
     stopwords_file: config/stopwords.txt
     
   languages:

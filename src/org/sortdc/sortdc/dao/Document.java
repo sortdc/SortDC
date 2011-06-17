@@ -6,7 +6,7 @@ public class Document {
 
     private String id;
     private String category_id;
-    private Map<String, Integer> words;
+    private Map<String, Integer> tokens;
 
     public String getId() {
         return this.id;
@@ -24,11 +24,11 @@ public class Document {
         this.category_id = category_id;
     }
 
-    public Map<String, Integer> getWordsOccurrences() {
-        return this.words;
+    public Map<String, Integer> getTokensOccurrences() {
+        return this.tokens;
     }
 
-    public void setWordsOccurrences(Map<String, Integer> words) {
-        this.words = words;
+    public void setTokensOccurrences(Map<String, Integer> tokens) {
+        this.tokens = tokens;
     }
 }

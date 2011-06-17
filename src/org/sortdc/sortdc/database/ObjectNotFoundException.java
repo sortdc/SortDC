@@ -6,7 +6,7 @@ public class ObjectNotFoundException extends Exception {
 
     public enum Type {
 
-        CATEGORY, DOCUMENT, WORD
+        CATEGORY, DOCUMENT, TOKEN
     }
 
     public ObjectNotFoundException(Type type) {
@@ -24,7 +24,7 @@ public class ObjectNotFoundException extends Exception {
                 case DOCUMENT:
                     message = "Document not found";
                     break;
-                case WORD:
+                case TOKEN:
                     message = "Word not found";
                     break;
             }

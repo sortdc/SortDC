@@ -38,7 +38,7 @@ public class DocumentResource {
         String classifier_id = this.classifier.getId();
         DocumentDTO document_dto = new DocumentDTO(classifier_id, this.document.getId());
         document_dto.setCategory(new CategoryDTO(classifier_id, this.category.getId()));
-        document_dto.setTokens(this.document.getWordsOccurrences());
+        document_dto.setTokens(this.document.getTokensOccurrences());
         return document_dto;
     }
 

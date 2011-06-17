@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.dao.Document;
-import org.sortdc.sortdc.dao.Word;
+import org.sortdc.sortdc.dao.Token;
 
 public class DatabaseMysql extends Database {
 
@@ -129,18 +129,18 @@ public class DatabaseMysql extends Database {
             document.setId(data.getString("id"));
             document.setCategoryId(data.getString("category_id"));
 
-            Map<String, Integer> words = new HashMap<String, Integer>();
+            Map<String, Integer> tokens = new HashMap<String, Integer>();
             statement = this.connection.prepareStatement(
                     "SELECT w.name, dw.occurrences "
-                    + "FROM documents_words dw "
-                    + "INNER JOIN words w ON w.id = dw.word_id "
+                    + "FROM documents_tokens dw "
+                    + "INNER JOIN tokens w ON w.id = dw.token_id "
                     + "WHERE dw.document_id = ?");
             statement.setString(1, document_id);
             data = statement.executeQuery();
             while (data.next()) {
-                words.put(data.getString("name"), data.getInt("occurrences"));
+                tokens.put(data.getString("name"), data.getInt("occurrences"));
             }
-            document.setWordsOccurrences(words);
+            document.setTokensOccurrences(tokens);
 
         } else {
             throw new ObjectNotFoundException(ObjectNotFoundException.Type.DOCUMENT);
@@ -179,79 +179,79 @@ public class DatabaseMysql extends Database {
             statement.setString(2, category_id);
             statement.executeUpdate();
 
-            Set<String> words = new HashSet<String>(document.getWordsOccurrences().keySet());
-            Map<String, Integer> words_ids = new HashMap<String, Integer>();
-            Map<Integer, String> words_names = new HashMap<Integer, String>();
+            Set<String> tokens = new HashSet<String>(document.getTokensOccurrences().keySet());
+            Map<String, Integer> tokens_ids = new HashMap<String, Integer>();
+            Map<Integer, String> tokens_names = new HashMap<Integer, String>();
 
-            statement = this.connection.prepareStatement("SELECT id, name FROM words WHERE name IN (" + this.generateQsForIn(words.size()) + ")");
+            statement = this.connection.prepareStatement("SELECT id, name FROM tokens WHERE name IN (" + this.generateQsForIn(tokens.size()) + ")");
             int i = 1;
-            for (String word_name : words) {
-                statement.setString(i++, word_name);
+            for (String token_name : tokens) {
+                statement.setString(i++, token_name);
             }
             data = statement.executeQuery();
             while (data.next()) {
-                words.remove(data.getString("name"));
-                words_ids.put(data.getString("name"), data.getInt("id"));
-                words_names.put(data.getInt("id"), data.getString("name"));
+                tokens.remove(data.getString("name"));
+                tokens_ids.put(data.getString("name"), data.getInt("id"));
+                tokens_names.put(data.getInt("id"), data.getString("name"));
             }
 
-            statement = this.connection.prepareStatement("INSERT INTO words (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
-            for (String word_name : words) {
-                statement.setString(1, word_name);
+            statement = this.connection.prepareStatement("INSERT INTO tokens (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
+            for (String token_name : tokens) {
+                statement.setString(1, token_name);
                 statement.executeUpdate();
 
                 data = statement.getGeneratedKeys();
                 if (data != null && data.next()) {
-                    words_ids.put(word_name, data.getInt(1));
-                    words_names.put(data.getInt(1), word_name);
+                    tokens_ids.put(token_name, data.getInt(1));
+                    tokens_names.put(data.getInt(1), token_name);
                 } else {
-                    throw new Exception("Unable to add word: " + word_name);
+                    throw new Exception("Unable to add token: " + token_name);
                 }
             }
 
-            statement = this.connection.prepareStatement("INSERT INTO documents_words (document_id, word_id, occurrences) VALUES (?, ?, ?)");
-            for (Map.Entry<String, Integer> word : words_ids.entrySet()) {
-                if (!document.getWordsOccurrences().containsKey((String) word.getKey())) {
-                    System.out.println(document.getWordsOccurrences());
-                    System.out.println(word.getKey());
+            statement = this.connection.prepareStatement("INSERT INTO documents_tokens (document_id, token_id, occurrences) VALUES (?, ?, ?)");
+            for (Map.Entry<String, Integer> token : tokens_ids.entrySet()) {
+                if (!document.getTokensOccurrences().containsKey((String) token.getKey())) {
+                    System.out.println(document.getTokensOccurrences());
+                    System.out.println(token.getKey());
                 }
                 statement.setString(1, document_id);
-                statement.setInt(2, (Integer) word.getValue());
-                statement.setInt(3, document.getWordsOccurrences().get((String) word.getKey()));
+                statement.setInt(2, (Integer) token.getValue());
+                statement.setInt(3, document.getTokensOccurrences().get((String) token.getKey()));
                 statement.executeUpdate();
             }
 
             statement2 = this.connection.prepareStatement(
-                    "UPDATE categories_words "
+                    "UPDATE categories_tokens "
                     + "SET occurrences = occurrences + ? "
-                    + "WHERE word_id = ? AND category_id = ?");
+                    + "WHERE token_id = ? AND category_id = ?");
             statement = this.connection.prepareStatement(
-                    "SELECT word_id "
-                    + "FROM categories_words "
-                    + "WHERE word_id IN (" + this.generateQsForIn(words_ids.size()) + ") AND category_id = ?");
+                    "SELECT token_id "
+                    + "FROM categories_tokens "
+                    + "WHERE token_id IN (" + this.generateQsForIn(tokens_ids.size()) + ") AND category_id = ?");
             i = 1;
-            for (Map.Entry<String, Integer> word : words_ids.entrySet()) {
-                statement.setInt(i++, (Integer) word.getValue());
+            for (Map.Entry<String, Integer> token : tokens_ids.entrySet()) {
+                statement.setInt(i++, (Integer) token.getValue());
             }
             statement.setString(i, category_id);
             data = statement.executeQuery();
             while (data.next()) {
-                int word_id = data.getInt("word_id");
-                statement2.setInt(1, document.getWordsOccurrences().get((String) words_names.get(word_id)));
-                statement2.setInt(2, word_id);
+                int token_id = data.getInt("token_id");
+                statement2.setInt(1, document.getTokensOccurrences().get((String) tokens_names.get(token_id)));
+                statement2.setInt(2, token_id);
                 statement2.setString(3, category_id);
                 statement2.executeUpdate();
-                words_names.remove(word_id);
+                tokens_names.remove(token_id);
             }
 
-            for (Map.Entry<Integer, String> word : words_names.entrySet()) {
+            for (Map.Entry<Integer, String> token : tokens_names.entrySet()) {
                 statement = this.connection.prepareStatement(
-                        "INSERT INTO categories_words "
-                        + "(word_id, category_id, occurrences) "
+                        "INSERT INTO categories_tokens "
+                        + "(token_id, category_id, occurrences) "
                         + "VALUES (?, ?, ?)");
-                statement.setInt(1, word.getKey());
+                statement.setInt(1, token.getKey());
                 statement.setString(2, category_id);
-                statement.setInt(3, document.getWordsOccurrences().get((String) word.getValue()));
+                statement.setInt(3, document.getTokensOccurrences().get((String) token.getValue()));
                 statement.executeUpdate();
             }
 
@@ -275,20 +275,20 @@ public class DatabaseMysql extends Database {
      */
     public synchronized void deleteDocumentById(String document_id) throws Exception {
         PreparedStatement statement2 = this.connection.prepareStatement(
-                "UPDATE categories_words "
+                "UPDATE categories_tokens "
                 + "SET occurrences = GREATEST(0, occurrences - ?) "
-                + "WHERE word_id = ? AND category_id = ? "
+                + "WHERE token_id = ? AND category_id = ? "
                 + "LIMIT 1");
         PreparedStatement statement = this.connection.prepareStatement(
-                "SELECT dw.word_id, dw.occurrences, d.category_id "
-                + "FROM documents_words dw "
+                "SELECT dw.token_id, dw.occurrences, d.category_id "
+                + "FROM documents_tokens dw "
                 + "INNER JOIN documents d ON d.id = dw.document_id "
                 + "WHERE d.id = ?");
         statement.setString(1, document_id);
         ResultSet data = statement.executeQuery();
         while (data.next()) {
             statement2.setInt(1, data.getInt("occurrences"));
-            statement2.setInt(2, data.getInt("word_id"));
+            statement2.setInt(2, data.getInt("token_id"));
             statement2.setString(3, data.getString("category_id"));
             statement2.executeUpdate();
         }
@@ -299,99 +299,99 @@ public class DatabaseMysql extends Database {
     }
 
     /**
-     * Finds a word given its id
+     * Finds a token given its id
      *
-     * @param id word id
-     * @return word matching id
+     * @param id token id
+     * @return token matching id
      * @throws Exception
      */
-    public Word findWordById(String id) throws Exception {
-        return this.findWordByParam("id", id);
+    public Token findTokenById(String id) throws Exception {
+        return this.findTokenByParam("id", id);
     }
 
     /**
-     * Finds a word given its name
+     * Finds a token given its name
      *
-     * @param name word name
-     * @return word matching name
+     * @param name token name
+     * @return token matching name
      * @throws Exception
      */
-    public Word findWordByName(String name) throws Exception {
-        return this.findWordByParam("name", name);
+    public Token findTokenByName(String name) throws Exception {
+        return this.findTokenByParam("name", name);
     }
 
     /**
-     * Finds a word by a parameter (id or name)
+     * Finds a token by a parameter (id or name)
      *
      * @param param search parameter
      * @param value id or name
-     * @return word matching name
+     * @return token matching name
      * @throws Exception
      */
-    private Word findWordByParam(String param, String value) throws Exception {
-        Word word = new Word();
+    private Token findTokenByParam(String param, String value) throws Exception {
+        Token token = new Token();
         PreparedStatement statement;
         ResultSet data;
 
-        statement = this.connection.prepareStatement("SELECT id, name FROM words WHERE " + param + " = ? LIMIT 1");
+        statement = this.connection.prepareStatement("SELECT id, name FROM tokens WHERE " + param + " = ? LIMIT 1");
         statement.setString(1, value);
         data = statement.executeQuery();
         if (data.next()) {
-            int word_id = data.getInt("id");
-            word.setId(Integer.toString(word_id));
-            word.setName(data.getString("name"));
+            int token_id = data.getInt("id");
+            token.setId(Integer.toString(token_id));
+            token.setName(data.getString("name"));
 
             Map<String, Integer> occurences = new HashMap<String, Integer>();
-            PreparedStatement statement2 = this.connection.prepareStatement("SELECT category_id, occurrences FROM categories_words WHERE word_id = ?");
-            statement2.setInt(1, word_id);
+            PreparedStatement statement2 = this.connection.prepareStatement("SELECT category_id, occurrences FROM categories_tokens WHERE token_id = ?");
+            statement2.setInt(1, token_id);
             ResultSet data2 = statement2.executeQuery();
             while (data2.next()) {
                 occurences.put(data2.getString("category_id"), data2.getInt("occurrences"));
             }
-            word.setOccurrencesByCategory(occurences);
+            token.setOccurrencesByCategory(occurences);
 
         } else {
-            throw new ObjectNotFoundException(ObjectNotFoundException.Type.WORD);
+            throw new ObjectNotFoundException(ObjectNotFoundException.Type.TOKEN);
         }
-        return word;
+        return token;
     }
 
     /**
-     * Finds a list of words given a set of names
+     * Finds a list of tokens given a set of names
      *
      * @param names set of names
-     * @return list of words matching names
+     * @return list of tokens matching names
      * @throws Exception
      */
-    public List<Word> findWordsByNames(Set<String> names) throws Exception {
-        List<Word> words = new ArrayList<Word>();
+    public List<Token> findTokensByNames(Set<String> names) throws Exception {
+        List<Token> tokens = new ArrayList<Token>();
 
         PreparedStatement statement;
         ResultSet data;
 
-        statement = this.connection.prepareStatement("SELECT id, name FROM words WHERE name IN (" + this.generateQsForIn(names.size()) + ")");
+        statement = this.connection.prepareStatement("SELECT id, name FROM tokens WHERE name IN (" + this.generateQsForIn(names.size()) + ")");
         int i = 1;
         for (String name : names) {
             statement.setString(i++, name);
         }
         data = statement.executeQuery();
         while (data.next()) {
-            Word word = new Word();
-            int word_id = data.getInt("id");
-            word.setId(Integer.toString(word_id));
-            word.setName(data.getString("name"));
+            Token token = new Token();
+            int token_id = data.getInt("id");
+            token.setId(Integer.toString(token_id));
+            token.setName(data.getString("name"));
 
             Map<String, Integer> occurences = new HashMap<String, Integer>();
-            PreparedStatement statement2 = this.connection.prepareStatement("SELECT category_id, occurrences FROM categories_words WHERE word_id = ?");
-            statement2.setInt(1, word_id);
+            PreparedStatement statement2 = this.connection.prepareStatement("SELECT category_id, occurrences FROM categories_tokens WHERE token_id = ?");
+            statement2.setInt(1, token_id);
             ResultSet data2 = statement2.executeQuery();
             while (data2.next()) {
                 occurences.put(data2.getString("category_id"), data2.getInt("occurrences"));
             }
-            word.setOccurrencesByCategory(occurences);
-            words.add(word);
+            token.setOccurrencesByCategory(occurences);
+            tokens.add(token);
         }
-        return words;
+        return tokens;
     }
 
     /**

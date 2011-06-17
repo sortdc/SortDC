@@ -37,7 +37,7 @@ public class Config {
     public static final String CLASSIFIERS_DATABASE_PASSWORD = "password";
     public static final String CLASSIFIER_LANG = "lang";
     public static final String CLASSIFIER_WORDS = "words";
-    public static final String CLASSIFIER_WORDS_MIN_LENGTH = "words_min_length";
+    public static final String CLASSIFIER_TOKENS_MIN_LENGTH = "tokens_min_length";
     public static final String CLASSIFIER_STEMMING = "stemming";
     public static final String CLASSIFIER_NGRAMSCHARS = "ngrams_chars";
     public static final String CLASSIFIER_NGRAMSWORDS = "ngrams_words";
@@ -229,8 +229,8 @@ public class Config {
                     tokenization.disableStemming();
                 }
             }
-            if (classifierConfig.containsKey(CLASSIFIER_WORDS_MIN_LENGTH)) {
-                tokenization.setWordsMinLength(this.paramToInt(classifierConfig.get(CLASSIFIER_WORDS_MIN_LENGTH)));
+            if (classifierConfig.containsKey(CLASSIFIER_TOKENS_MIN_LENGTH)) {
+                tokenization.setTokensMinLength(this.paramToInt(classifierConfig.get(CLASSIFIER_TOKENS_MIN_LENGTH)));
             }
             if (classifierConfig.containsKey(CLASSIFIER_NGRAMSCHARS)) {
                 List<Integer> ngrams_chars = this.paramToList(classifierConfig.get(CLASSIFIER_NGRAMSCHARS));

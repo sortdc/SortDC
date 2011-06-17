@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.dao.Document;
-import org.sortdc.sortdc.dao.Word;
+import org.sortdc.sortdc.dao.Token;
 
 public class DatabaseMongo extends Database {
 
@@ -53,7 +53,7 @@ public class DatabaseMongo extends Database {
      */
     private void init() throws Exception {
         this.addUniqueIndex("documents", "category_id");
-        this.addUniqueIndex("words", "name");
+        this.addUniqueIndex("tokens", "name");
     }
 
     /**
@@ -140,7 +140,7 @@ public class DatabaseMongo extends Database {
             DBObject current_doc = cursor.next();
             document.setId(current_doc.get("_id").toString());
             document.setCategoryId(current_doc.get("category_id").toString());
-            document.setWordsOccurrences((Map<String, Integer>) current_doc.get("words"));
+            document.setTokensOccurrences((Map<String, Integer>) current_doc.get("tokens"));
         } else {
             throw new ObjectNotFoundException(ObjectNotFoundException.Type.DOCUMENT);
         }
@@ -165,13 +165,13 @@ public class DatabaseMongo extends Database {
             document_id = UUID.randomUUID().toString();
         } else {
             document_id = document.getId();
-            this.deleteDocumentWordsOcurrences(document);
+            this.deleteDocumentTokensOcurrences(document);
         }
 
         DBCollection collection = this.db.getCollection("documents");
         DBObject query = new BasicDBObject();
         query.put("category_id", category_id);
-        query.put("words", document.getWordsOccurrences());
+        query.put("tokens", document.getTokensOccurrences());
 
         if (document_id == null) {
             collection.insert(query);
@@ -181,46 +181,46 @@ public class DatabaseMongo extends Database {
             collection.save(query);
         }
 
-        Set<String> names = new HashSet<String>(document.getWordsOccurrences().keySet());
-        List<Word> words = this.findWordsByNames(names);
+        Set<String> names = new HashSet<String>(document.getTokensOccurrences().keySet());
+        List<Token> tokens = this.findTokensByNames(names);
         Map<String, Integer> occurences = new HashMap<String, Integer>();
-        for (Word word : words) {
-            names.remove(word.getName());
+        for (Token token : tokens) {
+            names.remove(token.getName());
 
-            occurences = word.getOccurrencesByCategory();
+            occurences = token.getOccurrencesByCategory();
 
             if (occurences.containsKey(category_id)) {
-                occurences.put(category_id, occurences.get(category_id) + document.getWordsOccurrences().get(word.getName()));
+                occurences.put(category_id, occurences.get(category_id) + document.getTokensOccurrences().get(token.getName()));
             } else {
-                occurences.put(category_id, document.getWordsOccurrences().get(word.getName()));
+                occurences.put(category_id, document.getTokensOccurrences().get(token.getName()));
             }
-            this.saveWord(word);
+            this.saveToken(token);
         }
         Map<String, Integer> occurences2 = new HashMap<String, Integer>();
         for (String name : names) {
-            Word word = new Word();
-            word.setName(name);
-            occurences2.put(category_id, document.getWordsOccurrences().get(name));
-            word.setOccurrencesByCategory(occurences2);
-            this.saveWord(word);
+            Token token = new Token();
+            token.setName(name);
+            occurences2.put(category_id, document.getTokensOccurrences().get(name));
+            token.setOccurrencesByCategory(occurences2);
+            this.saveToken(token);
         }
     }
 
     /**
-     * Deletes words' occurrences of a document in a category
+     * Deletes tokens' occurrences of a document in a category
      *
      * @throws Exception
      */
-    private void deleteDocumentWordsOcurrences(Document document) throws Exception {
-        Map<String, Integer> occurences = document.getWordsOccurrences();
+    private void deleteDocumentTokensOcurrences(Document document) throws Exception {
+        Map<String, Integer> occurences = document.getTokensOccurrences();
 
         for (Map.Entry<String, Integer> doc_occurences : occurences.entrySet()) {
             try {
-                Word word = this.findWordByName(doc_occurences.getKey());
-                for (Map.Entry<String, Integer> word_occurences : word.getOccurrencesByCategory().entrySet()) {
-                    if (word_occurences.getKey().equals(document.getCategoryId())) {
-                        word_occurences.setValue(word_occurences.getValue() - doc_occurences.getValue());
-                        this.saveWord(word);
+                Token token = this.findTokenByName(doc_occurences.getKey());
+                for (Map.Entry<String, Integer> token_occurences : token.getOccurrencesByCategory().entrySet()) {
+                    if (token_occurences.getKey().equals(document.getCategoryId())) {
+                        token_occurences.setValue(token_occurences.getValue() - doc_occurences.getValue());
+                        this.saveToken(token);
                     }
                 }
             } catch (ObjectNotFoundException e) {
@@ -236,7 +236,7 @@ public class DatabaseMongo extends Database {
      */
     public void deleteDocumentById(String document_id) throws Exception {
         Document document = this.findDocumentById(document_id);
-        this.deleteDocumentWordsOcurrences(document);
+        this.deleteDocumentTokensOcurrences(document);
 
         DBCollection collection = this.db.getCollection("documents");
         DBObject query = new BasicDBObject();
@@ -245,39 +245,39 @@ public class DatabaseMongo extends Database {
     }
 
     /**
-     * Finds a word given its id
+     * Finds a token given its id
      *
-     * @param id word id
-     * @return word matching id
+     * @param id token id
+     * @return token matching id
      * @throws Exception
      */
-    public Word findWordById(String id) throws Exception {
-        return this.findWordByParam("_id", id);
+    public Token findTokenById(String id) throws Exception {
+        return this.findTokenByParam("_id", id);
     }
 
     /**
-     * Finds a word given its name
+     * Finds a token given its name
      *
-     * @param name word name
-     * @return word matching name
+     * @param name token name
+     * @return token matching name
      * @throws Exception
      */
-    public Word findWordByName(String name) throws Exception {
-        return this.findWordByParam("name", name);
+    public Token findTokenByName(String name) throws Exception {
+        return this.findTokenByParam("name", name);
     }
 
     /**
-     * Finds a word by a parameter (id or name)
+     * Finds a token by a parameter (id or name)
      *
      * @param param search parameter
-     * @param name word name
-     * @return word matching name
+     * @param name token name
+     * @return token matching name
      * @throws Exception
      */
-    private Word findWordByParam(String param, String value) throws Exception {
-        Word word = new Word();
+    private Token findTokenByParam(String param, String value) throws Exception {
+        Token token = new Token();
 
-        DBCollection collection = this.db.getCollection("words");
+        DBCollection collection = this.db.getCollection("tokens");
         DBObject query = new BasicDBObject();
         query.put(param, value);
 
@@ -285,68 +285,68 @@ public class DatabaseMongo extends Database {
 
         if (cursor.hasNext()) {
             DBObject current_doc = cursor.next();
-            word.setId(current_doc.get("_id").toString());
-            word.setName(current_doc.get("name").toString());
-            word.setOccurrencesByCategory((Map<String, Integer>) current_doc.get("occurences"));
+            token.setId(current_doc.get("_id").toString());
+            token.setName(current_doc.get("name").toString());
+            token.setOccurrencesByCategory((Map<String, Integer>) current_doc.get("occurences"));
         } else {
-            throw new ObjectNotFoundException(ObjectNotFoundException.Type.WORD);
+            throw new ObjectNotFoundException(ObjectNotFoundException.Type.TOKEN);
         }
         cursor.close();
-        return word;
+        return token;
     }
 
     /**
-     * Finds a list of words given a set of names
+     * Finds a list of tokens given a set of names
      *
      * @param names set of names
-     * @return list of words matching names
+     * @return list of tokens matching names
      * @throws Exception
      */
-    public List<Word> findWordsByNames(Set<String> names) throws Exception {
-        List<Word> words = new ArrayList<Word>();
+    public List<Token> findTokensByNames(Set<String> names) throws Exception {
+        List<Token> tokens = new ArrayList<Token>();
 
-        DBCollection collection = this.db.getCollection("words");
+        DBCollection collection = this.db.getCollection("tokens");
         DBObject query = new BasicDBObject();
         query.put("name", new BasicDBObject("$in", names.toArray()));
 
         DBCursor cursor = collection.find(query);
 
         while (cursor.hasNext()) {
-            Word word = new Word();
-            DBObject current_word = cursor.next();
-            word.setId(current_word.get("_id").toString());
-            word.setName(current_word.get("name").toString());
-            word.setOccurrencesByCategory((Map<String, Integer>) current_word.get("occurences"));
+            Token token = new Token();
+            DBObject current_token = cursor.next();
+            token.setId(current_token.get("_id").toString());
+            token.setName(current_token.get("name").toString());
+            token.setOccurrencesByCategory((Map<String, Integer>) current_token.get("occurences"));
 
-            words.add(word);
+            tokens.add(token);
         }
         cursor.close();
-        return words;
+        return tokens;
     }
 
     /**
-     * Saves a new word or update an existing one
+     * Saves a new token or update an existing one
      *
-     * @param word word to save / update
+     * @param token token to save / update
      * @throws Exception
      */
-    public synchronized void saveWord(Word word) throws Exception {
-        DBCollection collection = this.db.getCollection("words");
+    public synchronized void saveToken(Token token) throws Exception {
+        DBCollection collection = this.db.getCollection("tokens");
         DBObject query = new BasicDBObject();
-        query.put("name", word.getName());
+        query.put("name", token.getName());
 
-        Map<String, Integer> occurences = word.getOccurrencesByCategory();
-        DBObject word_occurences = new BasicDBObject();
+        Map<String, Integer> occurences = token.getOccurrencesByCategory();
+        DBObject token_occurences = new BasicDBObject();
         for (Map.Entry<String, Integer> cat_occurences : occurences.entrySet()) {
-            word_occurences.put(cat_occurences.getKey(), cat_occurences.getValue());
+            token_occurences.put(cat_occurences.getKey(), cat_occurences.getValue());
         }
-        query.put("occurences", word_occurences);
+        query.put("occurences", token_occurences);
 
-        if (word.getId() == null) {
+        if (token.getId() == null) {
             collection.insert(query);
-            word.setId(query.get("_id").toString());
+            token.setId(query.get("_id").toString());
         } else {
-            query.put("_id", word.getId());
+            query.put("_id", token.getId());
             collection.save(query);
         }
     }

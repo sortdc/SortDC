@@ -64,7 +64,7 @@ public class DocumentsResource {
         String classifier_id = this.classifier.getId();
         DocumentDTO document_dto = new DocumentDTO(classifier_id, document.getId());
         document_dto.setCategory(new CategoryDTO(classifier_id, this.category.getId()));
-        document_dto.setTokens(document.getWordsOccurrences());
+        document_dto.setTokens(document.getTokensOccurrences());
         return document_dto;
     }
 
@@ -98,13 +98,12 @@ public class DocumentsResource {
             Log.getInstance().add(e);
             throw new WebApplicationException(500);
         }
-        Category category;
         try {
-            category = this.classifier.getCategory(document.getCategoryId());
+            this.category = this.classifier.getCategory(document.getCategoryId());
         } catch (ObjectNotFoundException e) {
             System.out.println(e.getMessage());
             throw new NotFoundException();
         }
-        return new DocumentResource(this.classifier, category, document);
+        return new DocumentResource(this.classifier, this.category, document);
     }
 }

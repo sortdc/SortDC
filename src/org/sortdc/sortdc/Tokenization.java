@@ -15,7 +15,7 @@ public class Tokenization {
     private String lang;
     private List<Integer> ngrams_words = null;
     private List<Integer> ngrams_chars = null;
-    private int words_min_length = 2;
+    private int tokens_min_length = 2;
     private List<String> stopWords;
 
     /**
@@ -72,13 +72,13 @@ public class Tokenization {
     }
 
     /**
-     * words_min_length parameter setter.
-     * Indicates the minimal length of words returned in the extract() method list.
+     * tokens_min_length parameter setter.
+     * Indicates the minimal length of tokens returned in the extract() method list.
      *
      * @param length
      */
-    public void setWordsMinLength(int length) {
-        this.words_min_length = length;
+    public void setTokensMinLength(int length) {
+        this.tokens_min_length = length;
     }
 
     /**
@@ -91,11 +91,11 @@ public class Tokenization {
     }
 
     /**
-     * Analizes a text and returns a list of words and tokens depending on instance parameters.
+     * Analizes a text and returns a list of tokens depending on instance parameters.
      *
      * @param text text to analize
      * @param lang text language
-     * @return list of text words/bigrams/trigrams
+     * @return list of text tokens (words, bigrams, trigrams...)
      * @throws Exception
      */
     public List<String> extract(String text) throws Exception {
@@ -213,7 +213,7 @@ public class Tokenization {
      */
     private void deleteSmallWords(List<String> words) {
         for (int i = words.size() - 1; i >= 0; i--) {
-            if (words.get(i).length() < this.words_min_length) {
+            if (words.get(i).length() < this.tokens_min_length) {
                 words.remove(i);
             }
         }
@@ -235,13 +235,13 @@ public class Tokenization {
         }
     }
 
-    public Map<String, Integer> getOccurrences(List<String> words) {
+    public Map<String, Integer> getOccurrences(List<String> tokens) {
         Map<String, Integer> occurrences = new HashMap<String, Integer>();
-        for (String word : words) {
-            if (occurrences.containsKey(word)) {
-                occurrences.put(word, ((int) occurrences.get(word)) + 1);
+        for (String token : tokens) {
+            if (occurrences.containsKey(token)) {
+                occurrences.put(token, ((int) occurrences.get(token)) + 1);
             } else {
-                occurrences.put(word, 1);
+                occurrences.put(token, 1);
             }
         }
         return occurrences;
