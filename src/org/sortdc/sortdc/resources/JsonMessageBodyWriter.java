@@ -14,7 +14,7 @@ import org.codehaus.jackson.map.SerializationConfig.Feature;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 @Provider
-@Produces("application/json")
+@Produces(MediaType.APPLICATION_JSON)
 public class JsonMessageBodyWriter implements MessageBodyWriter {
 
     @Override

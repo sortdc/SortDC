@@ -1,6 +1,5 @@
 package org.sortdc.sortdc.resources;
 
-import com.sun.jersey.api.NotFoundException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

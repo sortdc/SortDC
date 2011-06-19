@@ -20,7 +20,7 @@ public class Main {
 
             final String webserviceURI = config.getWebserviceURI();
             final Map<String, String> webserviceParams = new HashMap<String, String>();
-            webserviceParams.put("com.sun.jersey.config.property.packages", "org.sortdc.sortdc.resources;org.codehaus.jackson.jaxrs");
+            webserviceParams.put("com.sun.jersey.config.property.packages", "org.sortdc.sortdc.resources");
 
             System.out.println("Starting grizzly...");
             SelectorThread threadSelector = GrizzlyWebContainerFactory.create(webserviceURI, webserviceParams);

@@ -10,7 +10,8 @@ import org.sortdc.sortdc.Config;
 @XmlRootElement(name = "categories")
 public class CategoriesDTO extends ArrayList<CategoryDTO> {
 
-    private String href;
+    @XmlAttribute
+    public String href;
 
     public CategoriesDTO() {
     }
@@ -20,11 +21,6 @@ public class CategoriesDTO extends ArrayList<CategoryDTO> {
             this.href = Config.getInstance().getWebserviceURI() + "classifiers/" + classifier_id + "/categories";
         } catch (Exception e) {
         }
-    }
-
-    @XmlAttribute
-    public String getHref() {
-        return this.href;
     }
 
     @XmlElementRef(type = CategoryDTO.class)

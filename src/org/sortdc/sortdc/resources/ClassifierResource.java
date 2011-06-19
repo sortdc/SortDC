@@ -26,7 +26,7 @@ public class ClassifierResource {
     public ClassifierDTO get() {
         String classifier_id = this.classifier.getId();
         ClassifierDTO classifier_dto = new ClassifierDTO(classifier_id);
-        classifier_dto.setCategories(new CategoriesDTO(classifier_id));
+        classifier_dto.categories = new CategoriesDTO(classifier_id);
         return classifier_dto;
     }
 

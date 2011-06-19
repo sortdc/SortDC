@@ -1,6 +1,7 @@
 package org.sortdc.sortdc.resources;
 
 import com.sun.jersey.api.NotFoundException;
+import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -17,6 +18,7 @@ import org.sortdc.sortdc.dao.Document;
 import org.sortdc.sortdc.database.ObjectNotFoundException;
 import org.sortdc.sortdc.resources.dto.CategoryDTO;
 import org.sortdc.sortdc.resources.dto.DocumentDTO;
+import org.sortdc.sortdc.resources.dto.TokenDTO;
 
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class DocumentsResource {
@@ -50,7 +52,7 @@ public class DocumentsResource {
      */
     @POST
     @Consumes(MediaType.TEXT_PLAIN)
-    public DocumentDTO post(String text) {
+    public DocumentDTO postTextPlain(String text) {
         if (this.category == null) {
             throw new WebApplicationException(405);
         }
@@ -63,9 +65,21 @@ public class DocumentsResource {
         }
         String classifier_id = this.classifier.getId();
         DocumentDTO document_dto = new DocumentDTO(classifier_id, document.getId());
-        document_dto.setCategory(new CategoryDTO(classifier_id, this.category.getId()));
+        document_dto.category = new CategoryDTO(classifier_id, this.category.getId());
         document_dto.setTokens(document.getTokensOccurrences());
         return document_dto;
+    }
+
+    /**
+     * Adds a new document
+     * 
+     * @return
+     */
+    @POST
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public DocumentDTO postJSON(DocumentDTO request) {
+        // TODO
+        return request;
     }
 
     /**

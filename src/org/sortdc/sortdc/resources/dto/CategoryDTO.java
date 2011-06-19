@@ -7,27 +7,27 @@ import org.sortdc.sortdc.Config;
 @XmlRootElement(name = "category")
 public class CategoryDTO {
 
-    private String id;
-    private String href;
+    @XmlAttribute
+    public String id;
+    private String classifier_id;
 
     public CategoryDTO() {
     }
 
     public CategoryDTO(String classifier_id, String id) {
         this.id = id;
-        try {
-            this.href = Config.getInstance().getWebserviceURI() + "classifiers/" + classifier_id + "/categories/" + id;
-        } catch (Exception e) {
-        }
-    }
-
-    @XmlAttribute
-    public String getId() {
-        return this.id;
+        this.classifier_id = classifier_id;
     }
 
     @XmlAttribute
     public String getHref() {
-        return this.href;
+        if (this.id == null || this.classifier_id == null) {
+            return null;
+        }
+        try {
+            return Config.getInstance().getWebserviceURI() + "classifiers/" + this.classifier_id + "/categories/" + this.id;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

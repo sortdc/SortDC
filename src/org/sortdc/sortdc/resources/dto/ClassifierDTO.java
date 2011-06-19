@@ -8,9 +8,12 @@ import org.sortdc.sortdc.Config;
 @XmlRootElement(name = "classifier")
 public class ClassifierDTO {
 
-    private String id;
-    private String href;
-    private CategoriesDTO categories;
+    @XmlAttribute
+    public String id;
+    @XmlAttribute
+    public String href;
+    @XmlElement
+    public CategoriesDTO categories;
 
     public ClassifierDTO() {
     }
@@ -21,24 +24,5 @@ public class ClassifierDTO {
             this.href = Config.getInstance().getWebserviceURI() + "classifiers/" + id;
         } catch (Exception e) {
         }
-    }
-
-    @XmlAttribute
-    public String getId() {
-        return this.id;
-    }
-
-    @XmlAttribute
-    public String getHref() {
-        return this.href;
-    }
-
-    @XmlElement
-    public CategoriesDTO getCategories() {
-        return this.categories;
-    }
-
-    public void setCategories(CategoriesDTO categories) {
-        this.categories = categories;
     }
 }
