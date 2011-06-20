@@ -7,6 +7,7 @@ import java.util.HashMap;
 import org.tartarus.snowball.SnowballStemmer;
 import java.util.List;
 import java.util.Map;
+import org.jsoup.Jsoup;
 
 public class Tokenization {
 
@@ -94,7 +95,6 @@ public class Tokenization {
      * Analizes a text and returns a list of tokens depending on instance parameters.
      *
      * @param text text to analize
-     * @param lang text language
      * @return list of text tokens (words, bigrams, trigrams...)
      * @throws Exception
      */
@@ -123,6 +123,18 @@ public class Tokenization {
             }
         }
         return tokens;
+    }
+
+    /**
+     * Analizes a html content and returns a list of tokens depending on instance parameters.
+     *
+     * @param html html content to analize
+     * @return list of text tokens (words, bigrams, trigrams...)
+     * @throws Exception
+     */
+    public List<String> extractFromHTML(String html) throws Exception {
+        String text = Jsoup.parse(html).text();
+        return this.extract(text);
     }
 
     /**
@@ -245,5 +257,22 @@ public class Tokenization {
             }
         }
         return occurrences;
+    }
+
+    public Map<String, Integer> mergeOccurrences(Map<String, Integer>... tokens_lists) {
+        Map<String, Integer> tokens_merged = new HashMap<String, Integer>();
+        if (tokens_lists.length == 0) {
+            return tokens_merged;
+        }
+        for (Map<String, Integer> tokens : tokens_lists) {
+            for (Map.Entry<String, Integer> token : tokens.entrySet()) {
+                if (tokens_merged.containsKey(token.getKey())) {
+                    tokens_merged.put(token.getKey(), tokens_merged.get(token.getKey()) + token.getValue());
+                } else {
+                    tokens_merged.put(token.getKey(), token.getValue());
+                }
+            }
+        }
+        return tokens_merged;
     }
 }

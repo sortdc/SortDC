@@ -41,17 +41,41 @@ public class DocumentResource {
         document_dto.setTokens(this.document.getTokensOccurrences());
         return document_dto;
     }
+    
+    /**
+     * Updates a document
+     * 
+     * @return
+     */
+    @PUT
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public DocumentDTO put(DocumentDTO request) {
+        if (request.category != null && request.category.id != null) {
+            document.setCategoryId(request.category.id);
+        }
+
+        try {
+            document.setTokensOccurrences(this.classifier.extractTokens(request.text, request.html, request.getTokens()));
+            this.classifier.saveDocument(document);
+        } catch (Exception e) {
+            Log.getInstance().add(e);
+            throw new WebApplicationException(500);
+        }
+
+        return this.get();
+    }
 
     /**
-     * Update a document
+     * Updates a document
      * 
      * @return
      */
     @PUT
     @Consumes(MediaType.TEXT_PLAIN)
-    public DocumentDTO put(String text) {
+    public DocumentDTO putTextPlain(String text) {
         try {
-            this.classifier.train(this.document, text);
+            this.document.setTokensOccurrences(this.classifier.extractTokens(text, null, null));
+            this.classifier.saveDocument(this.document);
         } catch (Exception e) {
             Log.getInstance().add(e);
             throw new WebApplicationException(500);

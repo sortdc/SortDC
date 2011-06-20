@@ -1,7 +1,6 @@
 package org.sortdc.sortdc.resources;
 
 import com.sun.jersey.api.NotFoundException;
-import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -18,7 +17,6 @@ import org.sortdc.sortdc.dao.Document;
 import org.sortdc.sortdc.database.ObjectNotFoundException;
 import org.sortdc.sortdc.resources.dto.CategoryDTO;
 import org.sortdc.sortdc.resources.dto.DocumentDTO;
-import org.sortdc.sortdc.resources.dto.TokenDTO;
 
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class DocumentsResource {
@@ -51,23 +49,31 @@ public class DocumentsResource {
      * @return
      */
     @POST
-    @Consumes(MediaType.TEXT_PLAIN)
-    public DocumentDTO postTextPlain(String text) {
-        if (this.category == null) {
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public DocumentDTO post(DocumentDTO request) {
+        String category_id;
+        if (request.category != null && request.category.id != null) {
+            category_id = request.category.id;
+        } else if (this.category != null) {
+            category_id = this.category.getId();
+        } else {
             throw new WebApplicationException(405);
         }
-        Document document;
+
+        Document document = new Document();
+        if (request.id != null) {
+            document.setId(request.id);
+        }
+        document.setCategoryId(category_id);
+
         try {
-            document = this.classifier.train((String) null, text, this.category.getId());
+            document.setTokensOccurrences(this.classifier.extractTokens(request.text, request.html, request.getTokens()));
+            this.classifier.saveDocument(document);
         } catch (Exception e) {
             Log.getInstance().add(e);
             throw new WebApplicationException(500);
         }
-        String classifier_id = this.classifier.getId();
-        DocumentDTO document_dto = new DocumentDTO(classifier_id, document.getId());
-        document_dto.category = new CategoryDTO(classifier_id, this.category.getId());
-        document_dto.setTokens(document.getTokensOccurrences());
-        return document_dto;
+        return this.getDocumentDTO(document);
     }
 
     /**
@@ -76,10 +82,36 @@ public class DocumentsResource {
      * @return
      */
     @POST
-    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public DocumentDTO postJSON(DocumentDTO request) {
-        // TODO
-        return request;
+    @Consumes(MediaType.TEXT_PLAIN)
+    public DocumentDTO postTextPlain(String text) {
+        if (this.category == null) {
+            throw new WebApplicationException(405);
+        }
+
+        Document document = new Document();
+        document.setCategoryId(this.category.getId());
+        try {
+            document.setTokensOccurrences(this.classifier.extractTokens(text, null, null));
+            this.classifier.saveDocument(document);
+        } catch (Exception e) {
+            Log.getInstance().add(e);
+            throw new WebApplicationException(500);
+        }
+        return this.getDocumentDTO(document);
+    }
+
+    /**
+     * Generates a DocumentDTO from a Document
+     * 
+     * @param document
+     * @return 
+     */
+    public DocumentDTO getDocumentDTO(Document document) {
+        String classifier_id = this.classifier.getId();
+        DocumentDTO document_dto = new DocumentDTO(classifier_id, document.getId());
+        document_dto.category = new CategoryDTO(classifier_id, document.getCategoryId());
+        document_dto.setTokens(document.getTokensOccurrences());
+        return document_dto;
     }
 
     /**
