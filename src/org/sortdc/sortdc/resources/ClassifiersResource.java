@@ -9,6 +9,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import org.sortdc.sortdc.Classifier;
 import org.sortdc.sortdc.Config;
 import org.sortdc.sortdc.Log;
@@ -30,7 +31,7 @@ public class ClassifiersResource {
             classifiers = Config.getInstance().getClassifiers();
         } catch (Exception e) {
             Log.getInstance().add(e);
-            throw new WebApplicationException(500);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
         ClassifiersDTO classifiers_dto = new ClassifiersDTO();
         for (String classifier_id : classifiers.keySet()) {
@@ -52,7 +53,7 @@ public class ClassifiersResource {
             classifiers = Config.getInstance().getClassifiers();
         } catch (Exception e) {
             Log.getInstance().add(e);
-            throw new WebApplicationException(500);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
         if (!classifiers.containsKey(classifier_id)) {
             throw new NotFoundException();

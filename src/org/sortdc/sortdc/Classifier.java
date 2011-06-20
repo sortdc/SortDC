@@ -54,6 +54,16 @@ public class Classifier {
     }
 
     /**
+     * Deletes a document given its id
+     *
+     * @param document_id
+     * @throws Exception
+     */
+    public void deleteDocument(String document_id) throws Exception {
+        this.database.deleteDocumentById(document_id);
+    }
+
+    /**
      * For each category, determines the probability that the given text belongs to it
      *
      * @param tokens_occurrences Tokens occurences

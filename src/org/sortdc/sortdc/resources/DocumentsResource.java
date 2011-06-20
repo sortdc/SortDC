@@ -1,6 +1,7 @@
 package org.sortdc.sortdc.resources;
 
 import com.sun.jersey.api.NotFoundException;
+import java.net.URI;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -10,6 +11,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import org.sortdc.sortdc.Classifier;
 import org.sortdc.sortdc.Log;
 import org.sortdc.sortdc.dao.Category;
@@ -50,18 +52,24 @@ public class DocumentsResource {
      */
     @POST
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public DocumentDTO post(DocumentDTO request) {
+    public Response post(DocumentDTO request) {
         String category_id;
         if (request.category != null && request.category.id != null) {
+            if (!request.category.id.matches("^[a-zA-Z0-9_-]+$")) {
+                throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            }
             category_id = request.category.id;
         } else if (this.category != null) {
             category_id = this.category.getId();
         } else {
-            throw new WebApplicationException(405);
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
 
         Document document = new Document();
         if (request.id != null) {
+            if (!request.id.matches("^[a-zA-Z0-9_-]+$")) {
+                throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            }
             document.setId(request.id);
         }
         document.setCategoryId(category_id);
@@ -71,9 +79,12 @@ public class DocumentsResource {
             this.classifier.saveDocument(document);
         } catch (Exception e) {
             Log.getInstance().add(e);
-            throw new WebApplicationException(500);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
-        return this.getDocumentDTO(document);
+
+        DocumentDTO document_dto = this.getDocumentDTO(document);
+        URI uri = URI.create(document_dto.getHref());
+        return Response.created(uri).entity(document_dto).build();
     }
 
     /**
@@ -83,9 +94,9 @@ public class DocumentsResource {
      */
     @POST
     @Consumes(MediaType.TEXT_PLAIN)
-    public DocumentDTO postTextPlain(String text) {
+    public Response postTextPlain(String text) {
         if (this.category == null) {
-            throw new WebApplicationException(405);
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
 
         Document document = new Document();
@@ -95,9 +106,12 @@ public class DocumentsResource {
             this.classifier.saveDocument(document);
         } catch (Exception e) {
             Log.getInstance().add(e);
-            throw new WebApplicationException(500);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
-        return this.getDocumentDTO(document);
+
+        DocumentDTO document_dto = this.getDocumentDTO(document);
+        URI uri = URI.create(document_dto.getHref());
+        return Response.created(uri).entity(document_dto).build();
     }
 
     /**
@@ -142,7 +156,7 @@ public class DocumentsResource {
             throw new NotFoundException();
         } catch (Exception e) {
             Log.getInstance().add(e);
-            throw new WebApplicationException(500);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
         try {
             this.category = this.classifier.getCategory(document.getCategoryId());
