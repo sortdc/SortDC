@@ -76,7 +76,7 @@ public class DocumentResource {
      */
     @PUT
     @Consumes(MediaType.TEXT_PLAIN)
-    public DocumentDTO putTextPlain(String text) {
+    public DocumentDTO putText(String text) {
         try {
             this.document.setTokensOccurrences(this.classifier.extractTokens(text, null, null));
             this.classifier.saveDocument(this.document);

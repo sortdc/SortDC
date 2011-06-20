@@ -1,5 +1,7 @@
 package org.sortdc.sortdc.resources;
 
+import java.util.Map;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -14,6 +16,7 @@ import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.database.ObjectNotFoundException;
 import org.sortdc.sortdc.resources.dto.CategoriesDTO;
 import org.sortdc.sortdc.resources.dto.CategoryDTO;
+import org.sortdc.sortdc.resources.dto.DocumentDTO;
 
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class CategoriesResource {
@@ -53,6 +56,54 @@ public class CategoriesResource {
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
         return Response.ok().build();
+    }
+
+    /**
+     * Updates a document
+     * 
+     * @return
+     */
+    @GET
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public CategoriesDTO categorize(DocumentDTO request) {
+        CategoriesDTO categories_dto = new CategoriesDTO(this.classifier.getId());
+        Map<String, Float> categories;
+        try {
+            categories = this.classifier.categorize(this.classifier.extractTokens(request.text, request.html, request.getTokens()));
+        } catch (Exception e) {
+            Log.getInstance().add(e);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        for (Map.Entry<String, Float> category : categories.entrySet()) {
+            CategoryDTO category_dto = new CategoryDTO(this.classifier.getId(), category.getKey());
+            category_dto.likelihood = category.getValue();
+            categories_dto.add(category_dto);
+        }
+        return categories_dto;
+    }
+
+    /**
+     * Updates a document
+     * 
+     * @return
+     */
+    @GET
+    @Consumes(MediaType.TEXT_PLAIN)
+    public CategoriesDTO categorizeText(String text) {
+        CategoriesDTO categories_dto = new CategoriesDTO(this.classifier.getId());
+        Map<String, Float> categories;
+        try {
+            categories = this.classifier.categorize(this.classifier.extractTokens(text, null, null));
+        } catch (Exception e) {
+            Log.getInstance().add(e);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        for (Map.Entry<String, Float> category : categories.entrySet()) {
+            CategoryDTO category_dto = new CategoryDTO(this.classifier.getId(), category.getKey());
+            category_dto.likelihood = category.getValue();
+            categories_dto.add(category_dto);
+        }
+        return categories_dto;
     }
 
     /**

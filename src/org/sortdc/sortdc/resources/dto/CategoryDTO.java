@@ -1,6 +1,7 @@
 package org.sortdc.sortdc.resources.dto;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.sortdc.sortdc.Config;
 
@@ -10,6 +11,8 @@ public class CategoryDTO {
     @XmlAttribute
     public String id;
     private String classifier_id;
+    @XmlElement
+    public Float likelihood;
 
     public CategoryDTO() {
     }

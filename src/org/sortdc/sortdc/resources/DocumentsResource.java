@@ -94,7 +94,7 @@ public class DocumentsResource {
      */
     @POST
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response postTextPlain(String text) {
+    public Response postText(String text) {
         if (this.category == null) {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
