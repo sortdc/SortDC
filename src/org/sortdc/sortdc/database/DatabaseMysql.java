@@ -395,6 +395,16 @@ public class DatabaseMysql extends Database {
     }
 
     /**
+     * Deletes all categories and documents
+     * 
+     * @throws Exception 
+     */
+    public void empty() throws Exception {
+        this.connection.prepareStatement("DELETE FROM categories").executeUpdate();
+        this.connection.prepareStatement("DELETE FROM tokens").executeUpdate();
+    }
+
+    /**
      * Prepares a list of "?" for PreparedStatement IN clauses
      * 
      * @param numQs

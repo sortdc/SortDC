@@ -114,10 +114,11 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public void deleteCategoryById(String category_id) throws Exception {
-        DBCollection collection = this.db.getCollection("categories");
-        DBObject query = new BasicDBObject();
-        query.put("_id", category_id);
-        collection.remove(query);
+        DBCollection collection;
+        collection = this.db.getCollection("documents");
+        collection.remove(new BasicDBObject("category_id", category_id));
+        collection = this.db.getCollection("categories");
+        collection.remove(new BasicDBObject("_id", category_id));
     }
 
     /**
@@ -159,7 +160,7 @@ public class DatabaseMongo extends Database {
         if (category_id == null) {
             throw new Exception("You must set a category's id");
         }
-        
+
         String document_id;
         if (document.getId() == null) {
             document_id = UUID.randomUUID().toString();
@@ -349,5 +350,16 @@ public class DatabaseMongo extends Database {
             query.put("_id", token.getId());
             collection.save(query);
         }
+    }
+
+    /**
+     * Deletes all categories and documents
+     * 
+     * @throws Exception 
+     */
+    public void empty() throws Exception {
+        this.db.getCollection("documents").remove(new BasicDBObject());
+        this.db.getCollection("categories").remove(new BasicDBObject());
+        this.db.getCollection("tokens").remove(new BasicDBObject());
     }
 }

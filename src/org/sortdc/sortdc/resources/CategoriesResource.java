@@ -5,8 +5,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import org.sortdc.sortdc.Classifier;
+import org.sortdc.sortdc.Log;
 import org.sortdc.sortdc.dao.Category;
 import org.sortdc.sortdc.database.ObjectNotFoundException;
 import org.sortdc.sortdc.resources.dto.CategoriesDTO;
@@ -42,8 +45,14 @@ public class CategoriesResource {
      * @return
      */
     @DELETE
-    public void delete() {
-        // TODO
+    public Response delete() {
+        try {
+            this.classifier.empty();
+        } catch (Exception e) {
+            Log.getInstance().add(e);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        return Response.ok().build();
     }
 
     /**

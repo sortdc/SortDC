@@ -95,7 +95,7 @@ public class DocumentResource {
     @DELETE
     public Response delete() {
         try {
-            this.classifier.deleteDocument(this.document.getId());
+            this.classifier.deleteDocumentById(this.document.getId());
         } catch (Exception e) {
             Log.getInstance().add(e);
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);

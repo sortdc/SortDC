@@ -21,8 +21,11 @@ public class Classifier {
 
     /**
      * Instance of Classifier
-     *
+     * 
+     * @param id Classifier's id
      * @param tokenization Instance of Tokenization
+     * @param database Instance of Database
+     * @throws Exception 
      */
     public Classifier(String id, Tokenization tokenization, Database database) throws Exception {
         this.id = id;
@@ -41,6 +44,14 @@ public class Classifier {
     }
 
     /**
+     * 
+     * @return 
+     */
+    public Tokenization getTokenization() {
+        return this.tokenization;
+    }
+
+    /**
      * Inserts or updates a document
      *
      * @param document
@@ -54,12 +65,23 @@ public class Classifier {
     }
 
     /**
+     * Finds a document given its id
+     *
+     * @param document_id document id
+     * @return document matching id
+     * @throws ObjectNotFoundException or Exception
+     */
+    public Document findDocumentById(String document_id) throws Exception {
+        return this.database.findDocumentById(document_id);
+    }
+
+    /**
      * Deletes a document given its id
      *
      * @param document_id
      * @throws Exception
      */
-    public void deleteDocument(String document_id) throws Exception {
+    public void deleteDocumentById(String document_id) throws Exception {
         this.database.deleteDocumentById(document_id);
     }
 
@@ -161,6 +183,13 @@ public class Classifier {
         return this.categories;
     }
 
+    /**
+     * Returns a Category given its id
+     * 
+     * @param category_id
+     * @return
+     * @throws ObjectNotFoundException 
+     */
     public Category getCategory(String category_id) throws ObjectNotFoundException {
         if (!this.categories.containsKey(category_id)) {
             throw new ObjectNotFoundException(ObjectNotFoundException.Type.CATEGORY);
@@ -169,17 +198,22 @@ public class Classifier {
     }
 
     /**
-     * Finds a document given its id
-     *
-     * @param document_id document id
-     * @return document matching id
-     * @throws ObjectNotFoundException or Exception
+     * Deletes a category
+     * 
+     * @throws Exception
      */
-    public Document findDocumentById(String document_id) throws Exception {
-        return this.database.findDocumentById(document_id);
+    public void deleteCategoryById(String category_id) throws Exception {
+        this.database.deleteCategoryById(category_id);
+        this.categories.remove(category_id);
     }
 
-    public Tokenization getTokenization() {
-        return this.tokenization;
+    /**
+     * Empties the classifier: deletes all categories and documents
+     * 
+     * @throws Exception 
+     */
+    public void empty() throws Exception {
+        this.database.empty();
+        this.categories.clear();
     }
 }

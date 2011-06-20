@@ -134,8 +134,18 @@ public class DocumentsResource {
      * @return
      */
     @DELETE
-    public void delete() {
-        // TODO
+    public Response delete() {
+        try {
+            if (this.category == null) {
+                this.classifier.empty();
+            } else {
+                this.classifier.deleteCategoryById(this.category.getId());
+            }
+        } catch (Exception e) {
+            Log.getInstance().add(e);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        return Response.ok().build();
     }
 
     /**

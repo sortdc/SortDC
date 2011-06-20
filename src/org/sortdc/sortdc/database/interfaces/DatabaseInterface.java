@@ -37,4 +37,6 @@ public interface DatabaseInterface {
     public Token findTokenByName(String name) throws Exception;
 
     public List<Token> findTokensByNames(Set<String> names) throws Exception;
+
+    public void empty() throws Exception;
 }
