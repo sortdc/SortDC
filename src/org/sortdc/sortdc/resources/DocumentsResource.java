@@ -197,7 +197,6 @@ public class DocumentsResource {
         try {
             this.category = this.classifier.getCategory(document.getCategoryId());
         } catch (ObjectNotFoundException e) {
-            System.out.println(e.getMessage());
             throw new NotFoundException();
         }
         return new DocumentResource(this.classifier, this.category, document);

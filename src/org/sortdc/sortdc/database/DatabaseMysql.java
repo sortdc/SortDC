@@ -184,6 +184,14 @@ public class DatabaseMysql extends Database {
             statement.setString(2, category_id);
             statement.executeUpdate();
 
+            Map<String, Integer> tokens_map = document.getTokensOccurrences();
+            for (Map.Entry<String, Integer> token : tokens_map.entrySet()) {
+                if (token.getKey().length() > this.token_name_max_size) {
+                    tokens_map.put(token.getKey().substring(0, this.token_name_max_size), token.getValue());
+                    tokens_map.remove(token.getKey());
+                }
+            }
+
             Set<String> tokens = new HashSet<String>(document.getTokensOccurrences().keySet());
             Map<String, Integer> tokens_ids = new HashMap<String, Integer>();
             Map<Integer, String> tokens_names = new HashMap<Integer, String>();
@@ -202,9 +210,6 @@ public class DatabaseMysql extends Database {
 
             statement = this.connection.prepareStatement("INSERT INTO tokens (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
             for (String token_name : tokens) {
-                if (token_name.length() > this.token_name_max_size) {
-                    token_name = token_name.substring(0, this.token_name_max_size);
-                }
                 statement.setString(1, token_name);
                 statement.executeUpdate();
 
@@ -219,10 +224,6 @@ public class DatabaseMysql extends Database {
 
             statement = this.connection.prepareStatement("INSERT INTO documents_tokens (document_id, token_id, occurrences) VALUES (?, ?, ?)");
             for (Map.Entry<String, Integer> token : tokens_ids.entrySet()) {
-                if (!document.getTokensOccurrences().containsKey((String) token.getKey())) {
-                    System.out.println(document.getTokensOccurrences());
-                    System.out.println(token.getKey());
-                }
                 statement.setString(1, document_id);
                 statement.setInt(2, (Integer) token.getValue());
                 statement.setInt(3, document.getTokensOccurrences().get((String) token.getKey()));
