@@ -155,12 +155,16 @@ public class DatabaseMysql extends Database {
      * @throws Exception
      */
     public synchronized void saveDocument(Document document) throws Exception {
+        if (document.getTokensOccurrences().isEmpty()) {
+            throw new Exception("Empty tokens list");
+        }
+
         this.connection.setAutoCommit(false);
         try {
             PreparedStatement statement;
             PreparedStatement statement2;
             ResultSet data;
-            
+
             String category_id = document.getCategoryId();
             if (category_id == null) {
                 throw new Exception("You must set a category's id");

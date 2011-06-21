@@ -1,5 +1,6 @@
 package org.sortdc.sortdc.resources;
 
+import java.util.Map;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -58,8 +59,18 @@ public class DocumentResource {
             document.setCategoryId(request.category.id);
         }
 
+        Map<String, Integer> tokens;
         try {
-            document.setTokensOccurrences(this.classifier.extractTokens(request.text, request.html, request.getTokens()));
+            tokens = this.classifier.extractTokens(request.text, request.html, request.getTokens());
+        } catch (Exception e) {
+            Log.getInstance().add(e);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        if (tokens.isEmpty()) {
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        try {
+            document.setTokensOccurrences(tokens);
             this.classifier.saveDocument(document);
         } catch (Exception e) {
             Log.getInstance().add(e);
@@ -77,8 +88,18 @@ public class DocumentResource {
     @PUT
     @Consumes(MediaType.TEXT_PLAIN)
     public DocumentDTO putText(String text) {
+        Map<String, Integer> tokens;
         try {
-            this.document.setTokensOccurrences(this.classifier.extractTokens(text, null, null));
+            tokens = this.classifier.extractTokens(text, null, null);
+        } catch (Exception e) {
+            Log.getInstance().add(e);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        if (tokens.isEmpty()) {
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        try {
+            this.document.setTokensOccurrences(tokens);
             this.classifier.saveDocument(this.document);
         } catch (Exception e) {
             Log.getInstance().add(e);

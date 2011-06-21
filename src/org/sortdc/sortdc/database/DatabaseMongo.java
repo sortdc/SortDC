@@ -156,6 +156,10 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public synchronized void saveDocument(Document document) throws Exception {
+        if (document.getTokensOccurrences().isEmpty()) {
+            throw new Exception("Empty tokens list");
+        }
+        
         String category_id = document.getCategoryId();
         if (category_id == null) {
             throw new Exception("You must set a category's id");
@@ -166,8 +170,8 @@ public class DatabaseMongo extends Database {
             document_id = UUID.randomUUID().toString();
         } else {
             document_id = document.getId();
-            this.deleteDocumentTokensOcurrences(document);
-        }
+                this.deleteDocumentTokensOcurrences(document);
+            }
 
         DBCollection collection = this.db.getCollection("documents");
         DBObject query = new BasicDBObject();
