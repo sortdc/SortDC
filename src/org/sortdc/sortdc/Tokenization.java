@@ -16,7 +16,8 @@ public class Tokenization {
     private String lang;
     private List<Integer> ngrams_words = null;
     private List<Integer> ngrams_chars = null;
-    private int tokens_min_length = 2;
+    private int words_min_length = 2;
+    private int tokens_max_length = 50;
     private List<String> stopWords;
 
     /**
@@ -73,13 +74,23 @@ public class Tokenization {
     }
 
     /**
-     * tokens_min_length parameter setter.
-     * Indicates the minimal length of tokens returned in the extract() method list.
+     * words_min_length parameter setter.
+     * Indicates the minimal length of words returned in the extract() method list.
      *
      * @param length
      */
-    public void setTokensMinLength(int length) {
-        this.tokens_min_length = length;
+    public void setWordsMinLength(int length) {
+        this.words_min_length = length;
+    }
+
+    /**
+     * tokens_max_length parameter setter.
+     * Indicates the maximum length of tokens returned in the extract() method list.
+     *
+     * @param length
+     */
+    public void setTokensMaxLength(int length) {
+        this.tokens_max_length = length;
     }
 
     /**
@@ -122,6 +133,8 @@ public class Tokenization {
                 tokens.addAll(this.getCharsNGrams(words, n));
             }
         }
+        this.truncateBigTokens(tokens);
+
         return tokens;
     }
 
@@ -146,7 +159,7 @@ public class Tokenization {
     private String[] tokenize(String text) {
         text = this.removeAccents(text);
         text = text.toLowerCase();
-        return text.split("[^a-z0-9\\-]+");
+        return text.split("[^a-z0-9]+");
     }
 
     /**
@@ -225,7 +238,7 @@ public class Tokenization {
      */
     private void deleteSmallWords(List<String> words) {
         for (int i = words.size() - 1; i >= 0; i--) {
-            if (words.get(i).length() < this.tokens_min_length) {
+            if (words.get(i).length() < this.words_min_length) {
                 words.remove(i);
             }
         }
@@ -243,6 +256,19 @@ public class Tokenization {
         for (int i = words.size() - 1; i >= 0; i--) {
             if (this.stopWords.contains(words.get(i))) {
                 words.remove(i);
+            }
+        }
+    }
+
+    /**
+     * Truncates too big tokens
+     *
+     * @param tokens tokens list to analize
+     */
+    private void truncateBigTokens(List<String> tokens) {
+        for (int i = tokens.size() - 1; i >= 0; i--) {
+            if (tokens.get(i).length() > this.tokens_max_length) {
+                tokens.set(i, tokens.get(i).substring(0, this.tokens_max_length));
             }
         }
     }

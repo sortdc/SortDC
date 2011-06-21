@@ -21,7 +21,6 @@ import org.sortdc.sortdc.dao.Token;
 public class DatabaseMysql extends Database {
 
     private Connection connection;
-    private int token_name_max_size = 50;
 
     public DatabaseMysql() {
         this.setHost("localhost");
@@ -183,14 +182,6 @@ public class DatabaseMysql extends Database {
             statement.setString(1, document_id);
             statement.setString(2, category_id);
             statement.executeUpdate();
-
-            Map<String, Integer> tokens_map = document.getTokensOccurrences();
-            for (Map.Entry<String, Integer> token : tokens_map.entrySet()) {
-                if (token.getKey().length() > this.token_name_max_size) {
-                    tokens_map.put(token.getKey().substring(0, this.token_name_max_size), token.getValue());
-                    tokens_map.remove(token.getKey());
-                }
-            }
 
             Set<String> tokens = new HashSet<String>(document.getTokensOccurrences().keySet());
             Map<String, Integer> tokens_ids = new HashMap<String, Integer>();
