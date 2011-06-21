@@ -21,6 +21,7 @@ import org.sortdc.sortdc.dao.Token;
 public class DatabaseMysql extends Database {
 
     private Connection connection;
+    private int token_name_max_size = 50;
 
     public DatabaseMysql() {
         this.setHost("localhost");
@@ -201,6 +202,9 @@ public class DatabaseMysql extends Database {
 
             statement = this.connection.prepareStatement("INSERT INTO tokens (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
             for (String token_name : tokens) {
+                if (token_name.length() > this.token_name_max_size) {
+                    token_name = token_name.substring(0, this.token_name_max_size);
+                }
                 statement.setString(1, token_name);
                 statement.executeUpdate();
 
