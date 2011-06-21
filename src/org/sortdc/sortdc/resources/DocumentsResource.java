@@ -54,6 +54,10 @@ public class DocumentsResource {
     @POST
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response post(DocumentDTO request) {
+        if (request == null) {
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+
         String category_id;
         if (request.category != null && request.category.id != null) {
             if (!request.category.id.matches("^[a-zA-Z0-9_-]+$")) {

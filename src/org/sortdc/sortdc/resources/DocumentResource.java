@@ -52,6 +52,10 @@ public class DocumentResource {
     @PUT
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public DocumentDTO put(DocumentDTO request) {
+        if (request == null) {
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+
         if (request.category != null && request.category.id != null) {
             if (!request.category.id.matches("^[a-zA-Z0-9_-]+$")) {
                 throw new WebApplicationException(Response.Status.BAD_REQUEST);

@@ -66,6 +66,10 @@ public class CategoriesResource {
     @GET
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public CategoriesDTO categorize(DocumentDTO request) {
+        if (request == null) {
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+
         CategoriesDTO categories_dto = new CategoriesDTO(this.classifier.getId());
         Map<String, Float> categories;
         try {
