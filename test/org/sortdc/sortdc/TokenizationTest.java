@@ -39,9 +39,9 @@ public class TokenizationTest {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(true);
             instance.disableStemming();
-            instance.setTokensMinLength(0);
+            instance.setWordsMinLength(0);
             List<String> test = instance.extract(this.testText);
-            List<String> expected = Arrays.asList("hello", "world", "grand-mere", "fait", "des", "confitures", "avec", "application");
+            List<String> expected = Arrays.asList("hello", "world", "grand", "mere", "fait", "des", "confitures", "avec", "application");
             assertEquals(expected.size(), test.size());
             for (int i = 0; i < expected.size(); i++) {
                 assertTrue(test.contains(expected.get(i)));
@@ -57,9 +57,9 @@ public class TokenizationTest {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(true);
             instance.enableStemming(this.testLang);
-            instance.setTokensMinLength(0);
+            instance.setWordsMinLength(0);
             List<String> test = instance.extract(this.testText);
-            List<String> expected = Arrays.asList("hello", "world", "grand-mer", "fait", "de", "confitur", "avec", "appliqu");
+            List<String> expected = Arrays.asList("hello", "world", "grand", "mer", "fait", "de", "confitur", "avec", "appliqu");
             assertEquals(expected.size(), test.size());
             for (int i = 0; i < expected.size(); i++) {
                 assertTrue(test.contains(expected.get(i)));
@@ -76,10 +76,10 @@ public class TokenizationTest {
             Tokenization instance = new Tokenization();
             instance.setExtractWords(true);
             instance.disableStemming();
-            instance.setTokensMinLength(0);
+            instance.setWordsMinLength(0);
             instance.setStopWords(stopWords);
             List<String> test = instance.extract(this.testText);
-            List<String> expected = Arrays.asList("hello", "world", "grand-mere", "des", "confitures", "application");
+            List<String> expected = Arrays.asList("hello", "world", "grand", "mere", "des", "confitures", "application");
             assertEquals(expected.size(), test.size());
             for (int i = 0; i < expected.size(); i++) {
                 assertTrue(test.contains(expected.get(i)));
@@ -98,7 +98,7 @@ public class TokenizationTest {
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList(
                     "he", "el", "ll", "lo", "wo", "or", "rl", "ld", "gr", "ra", "an",
-                    "nd", "d-", "-m", "me", "er", "re", "fa", "ai", "it", "de", "es",
+                    "nd", "me", "er", "re", "fa", "ai", "it", "de", "es",
                     "co", "on", "nf", "fi", "it", "tu", "ur", "re", "es", "av", "ve",
                     "ec", "ap", "pp", "pl", "li", "ic", "ca", "at", "ti", "io", "on");
             assertEquals(expected.size(), test.size());
@@ -118,7 +118,7 @@ public class TokenizationTest {
             instance.setNgramsWords(Arrays.asList(2));
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList(
-                    "hello world", "world grand-mere", "grand-mere fait", "fait des", "des confitures",
+                    "hello world", "world grand", "grand mere", "mere fait", "fait des", "des confitures",
                     "confitures avec", "avec application");
             assertEquals(expected.size(), test.size());
             for (int i = 0; i < expected.size(); i++) {
@@ -138,19 +138,19 @@ public class TokenizationTest {
             instance.enableStemming(this.testLang);
             instance.setNgramsWords(Arrays.asList(2, 3));
             instance.setNgramsChars(Arrays.asList(2, 3));
-            instance.setTokensMinLength(3);
+            instance.setWordsMinLength(3);
             instance.setStopWords(stopWords);
             List<String> test = instance.extract(this.testText);
             List<String> expected = Arrays.asList(
-                    "hello world", "world grand-mere", "grand-mere fait", "fait des", "des confitures", "confitures avec", "avec application",
-                    "hello world grand-mere", "world grand-mere fait", "grand-mere fait des", "fait des confitures", "des confitures avec", "confitures avec application",
-                    "hello", "world", "grand-mer", "de", "confitur", "appliqu", "he",
+                    "hello world", "world grand", "grand mere", "mere fait", "fait des", "des confitures", "confitures avec", "avec application",
+                    "hello world grand", "world grand mere", "grand mere fait", "mere fait des", "fait des confitures", "des confitures avec", "confitures avec application",
+                    "hello", "world", "grand", "mer", "de", "confitur", "appliqu", "he",
                     "el", "ll", "lo", "wo", "or", "rl", "ld", "gr", "ra", "an", "nd",
-                    "d-", "-m", "me", "er", "re", "fa", "ai", "it", "de", "es", "co",
+                    "me", "er", "re", "fa", "ai", "it", "de", "es", "co",
                     "on", "nf", "fi", "it", "tu", "ur", "re", "es", "av", "ve", "ec",
                     "ap", "pp", "pl", "li", "ic", "ca", "at", "ti", "io", "on", "hel",
-                    "ell", "llo", "wor", "orl", "rld", "gra", "ran", "and", "nd-", "d-m",
-                    "-me", "mer", "ere", "fai", "ait", "des", "con", "onf", "nfi", "fit",
+                    "ell", "llo", "wor", "orl", "rld", "gra", "ran", "and",
+                    "mer", "ere", "fai", "ait", "des", "con", "onf", "nfi", "fit",
                     "itu", "tur", "ure", "res", "ave", "vec", "app", "ppl", "pli", "lic",
                     "ica", "cat", "ati", "tio", "ion");
             assertEquals(expected.size(), test.size());
