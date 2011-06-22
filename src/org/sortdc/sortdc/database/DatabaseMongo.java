@@ -149,6 +149,53 @@ public class DatabaseMongo extends Database {
     }
 
     /**
+     * Finds all documents given their category_id
+     * @param category_id Category's id
+     * @return
+     * @throws Exception 
+     */
+    public List<Document> findDocumentsByCategoryId(String category_id) throws Exception {
+        List<Document> documents = new ArrayList<Document>();
+
+        DBCollection collection = this.db.getCollection("documents");
+        DBObject query = new BasicDBObject("category_id", category_id);
+        DBCursor cursor = collection.find(query);
+        while (cursor.hasNext()) {
+            Document document = new Document();
+            DBObject current_doc = cursor.next();
+            document.setId(current_doc.get("_id").toString());
+            document.setCategoryId(category_id);
+            documents.add(document);
+        }
+        cursor.close();
+
+        return documents;
+    }
+
+    /**
+     * Finds all documents
+     * 
+     * @return
+     * @throws Exception 
+     */
+    public List<Document> findAllDocuments() throws Exception {
+        List<Document> documents = new ArrayList<Document>();
+
+        DBCollection collection = this.db.getCollection("documents");
+        DBCursor cursor = collection.find();
+        while (cursor.hasNext()) {
+            Document document = new Document();
+            DBObject current_doc = cursor.next();
+            document.setId(current_doc.get("_id").toString());
+            document.setCategoryId(current_doc.get("category_id").toString());
+            documents.add(document);
+        }
+        cursor.close();
+
+        return documents;
+    }
+
+    /**
      * Saves a new document or updates an existing one
      *
      * @param document document to save / update

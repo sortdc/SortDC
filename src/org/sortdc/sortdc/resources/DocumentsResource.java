@@ -2,6 +2,8 @@ package org.sortdc.sortdc.resources;
 
 import com.sun.jersey.api.NotFoundException;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -20,6 +22,7 @@ import org.sortdc.sortdc.dao.Document;
 import org.sortdc.sortdc.database.ObjectNotFoundException;
 import org.sortdc.sortdc.resources.dto.CategoryDTO;
 import org.sortdc.sortdc.resources.dto.DocumentDTO;
+import org.sortdc.sortdc.resources.dto.DocumentsDTO;
 
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class DocumentsResource {
@@ -42,8 +45,45 @@ public class DocumentsResource {
      * @return
      */
     @GET
-    public void get() {
-        // TODO
+    public DocumentsDTO get() {
+        List<Document> documents;
+        DocumentsDTO documents_dto;
+        String classifier_id = this.classifier.getId();
+        try {
+            if (this.category == null) {
+                documents = this.classifier.findAllDocuments();
+                documents_dto = new DocumentsDTO(classifier_id);
+
+                Map<String, CategoryDTO> categories_dto = new HashMap<String, CategoryDTO>();
+                for (Document document : documents) {
+                    DocumentDTO document_dto = new DocumentDTO();
+                    document_dto.id = document.getId();
+                    String category_id = document.getCategoryId();
+                    CategoryDTO category_dto;
+                    if (!categories_dto.containsKey(category_id)) {
+                        category_dto = new CategoryDTO(classifier_id, category_id);
+                        categories_dto.put(category_id, category_dto);
+                    } else {
+                        category_dto = categories_dto.get(category_id);
+                    }
+                    document_dto.category = category_dto;
+                    documents_dto.add(document_dto);
+                }
+            } else {
+                documents = this.classifier.findDocumentsByCategoryId(this.category.getId());
+                documents_dto = new DocumentsDTO(classifier_id, this.category.getId());
+
+                for (Document document : documents) {
+                    DocumentDTO document_dto = new DocumentDTO();
+                    document_dto.id = document.getId();
+                    documents_dto.add(document_dto);
+                }
+            }
+        } catch (Exception e) {
+            Log.getInstance().add(e);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        return documents_dto;
     }
 
     /**

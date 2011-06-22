@@ -49,11 +49,12 @@ public class DocumentDTO {
 
     @XmlTransient
     public Map<String, Integer> getTokens() {
+        if (this.tokens == null) {
+            return null;
+        }
         Map<String, Integer> tokens_map = new HashMap<String, Integer>();
-        if (this.tokens != null) {
-            for (TokenDTO token_dto : this.tokens) {
-                tokens_map.put(token_dto.name, token_dto.count);
-            }
+        for (TokenDTO token_dto : this.tokens) {
+            tokens_map.put(token_dto.name, token_dto.count);
         }
         return tokens_map;
     }

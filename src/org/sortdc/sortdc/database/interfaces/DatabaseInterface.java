@@ -28,6 +28,10 @@ public interface DatabaseInterface {
 
     public Document findDocumentById(String document_id) throws Exception;
 
+    public List<Document> findDocumentsByCategoryId(String category_id) throws Exception;
+
+    public List<Document> findAllDocuments() throws Exception;
+
     public void saveDocument(Document document) throws Exception;
 
     public void deleteDocumentById(String document_id) throws Exception;

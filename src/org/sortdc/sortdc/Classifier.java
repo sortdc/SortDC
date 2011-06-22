@@ -76,6 +76,26 @@ public class Classifier {
     }
 
     /**
+     * Finds all documents given their category_id
+     * @param category_id Category's id
+     * @return
+     * @throws Exception 
+     */
+    public List<Document> findDocumentsByCategoryId(String category_id) throws Exception {
+        return this.database.findDocumentsByCategoryId(category_id);
+    }
+
+    /**
+     * Finds all documents
+     * 
+     * @return
+     * @throws Exception 
+     */
+    public List<Document> findAllDocuments() throws Exception {
+        return this.database.findAllDocuments();
+    }
+
+    /**
      * Deletes a document given its id
      *
      * @param document_id

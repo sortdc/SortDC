@@ -149,6 +149,47 @@ public class DatabaseMysql extends Database {
     }
 
     /**
+     * Finds all documents given their category_id
+     * @param category_id Category's id
+     * @return
+     * @throws Exception 
+     */
+    public List<Document> findDocumentsByCategoryId(String category_id) throws Exception {
+        List<Document> documents = new ArrayList<Document>();
+
+        PreparedStatement statement = this.connection.prepareStatement("SELECT id FROM documents WHERE category_id = ?");
+        statement.setString(1, category_id);
+        ResultSet data = statement.executeQuery();
+        while (data.next()) {
+            Document document = new Document();
+            document.setId(data.getString("id"));
+            document.setCategoryId(category_id);
+            documents.add(document);
+        }
+        return documents;
+    }
+
+    /**
+     * Finds all documents
+     * 
+     * @return
+     * @throws Exception 
+     */
+    public List<Document> findAllDocuments() throws Exception {
+        List<Document> documents = new ArrayList<Document>();
+
+        PreparedStatement statement = this.connection.prepareStatement("SELECT id, category_id FROM documents");
+        ResultSet data = statement.executeQuery();
+        while (data.next()) {
+            Document document = new Document();
+            document.setId(data.getString("id"));
+            document.setCategoryId(data.getString("category_id"));
+            documents.add(document);
+        }
+        return documents;
+    }
+
+    /**
      * Saves or updates a document
      *
      * @param document
