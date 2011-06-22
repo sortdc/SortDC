@@ -15,13 +15,12 @@ classifiers:
       host: localhost
       port: 27017
       dbname: sortdc_thematics
-      #username: azerty
+      #username: sortdc_thematics
       #password: azerty
-    lang: french
+    lang: english
     stemming: true
-    autotrain: true
-    autotrain_threshold: 0.7
-    tokens_min_length: 3
+    words_min_length: 3
+    tokens_max_length: 30
     stopwords_file: config/stopwords.txt
     
   languages:

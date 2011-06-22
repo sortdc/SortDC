@@ -47,13 +47,12 @@ public class DatabaseMongo extends Database {
     }
 
     /**
-     * Initializes the database : creates tables if they don't exist
+     * Initializes the database
      *
      * @throws Exception
      */
     private void init() throws Exception {
         this.addUniqueIndex("documents", "category_id");
-        this.addUniqueIndex("tokens", "name");
     }
 
     /**
@@ -159,29 +158,28 @@ public class DatabaseMongo extends Database {
         if (document.getTokensOccurrences().isEmpty()) {
             throw new Exception("Empty tokens list");
         }
-        
+
         String category_id = document.getCategoryId();
         if (category_id == null) {
             throw new Exception("You must set a category's id");
         }
-
-        String document_id;
-        if (document.getId() == null) {
-            document_id = UUID.randomUUID().toString();
-        } else {
-            document_id = document.getId();
-                this.deleteDocumentTokensOcurrences(document);
-            }
 
         DBCollection collection = this.db.getCollection("documents");
         DBObject query = new BasicDBObject();
         query.put("category_id", category_id);
         query.put("tokens", document.getTokensOccurrences());
 
-        if (document_id == null) {
+        String document_id;
+        if (document.getId() == null) {
+            document_id = UUID.randomUUID().toString();
             collection.insert(query);
             document.setId(query.get("_id").toString());
         } else {
+            document_id = document.getId();
+            try {
+                this.deleteDocumentTokensOcurrences(this.findDocumentById(document_id));
+            } catch (ObjectNotFoundException e) {
+            }
             query.put("_id", document_id);
             collection.save(query);
         }
@@ -225,9 +223,9 @@ public class DatabaseMongo extends Database {
                 for (Map.Entry<String, Integer> token_occurences : token.getOccurrencesByCategory().entrySet()) {
                     if (token_occurences.getKey().equals(document.getCategoryId())) {
                         token_occurences.setValue(token_occurences.getValue() - doc_occurences.getValue());
-                        this.saveToken(token);
                     }
                 }
+                this.saveToken(token);
             } catch (ObjectNotFoundException e) {
             }
         }
@@ -268,7 +266,7 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     public Token findTokenByName(String name) throws Exception {
-        return this.findTokenByParam("name", name);
+        return this.findTokenByParam("_id", name);
     }
 
     /**
@@ -291,7 +289,7 @@ public class DatabaseMongo extends Database {
         if (cursor.hasNext()) {
             DBObject current_doc = cursor.next();
             token.setId(current_doc.get("_id").toString());
-            token.setName(current_doc.get("name").toString());
+            token.setName(current_doc.get("_id").toString());
             token.setOccurrencesByCategory((Map<String, Integer>) current_doc.get("occurences"));
         } else {
             throw new ObjectNotFoundException(ObjectNotFoundException.Type.TOKEN);
@@ -312,7 +310,7 @@ public class DatabaseMongo extends Database {
 
         DBCollection collection = this.db.getCollection("tokens");
         DBObject query = new BasicDBObject();
-        query.put("name", new BasicDBObject("$in", names.toArray()));
+        query.put("_id", new BasicDBObject("$in", names.toArray()));
 
         DBCursor cursor = collection.find(query);
 
@@ -320,7 +318,7 @@ public class DatabaseMongo extends Database {
             Token token = new Token();
             DBObject current_token = cursor.next();
             token.setId(current_token.get("_id").toString());
-            token.setName(current_token.get("name").toString());
+            token.setName(current_token.get("_id").toString());
             token.setOccurrencesByCategory((Map<String, Integer>) current_token.get("occurences"));
 
             tokens.add(token);
@@ -338,7 +336,7 @@ public class DatabaseMongo extends Database {
     public synchronized void saveToken(Token token) throws Exception {
         DBCollection collection = this.db.getCollection("tokens");
         DBObject query = new BasicDBObject();
-        query.put("name", token.getName());
+        query.put("_id", token.getName());
 
         Map<String, Integer> occurences = token.getOccurrencesByCategory();
         DBObject token_occurences = new BasicDBObject();
@@ -346,14 +344,9 @@ public class DatabaseMongo extends Database {
             token_occurences.put(cat_occurences.getKey(), cat_occurences.getValue());
         }
         query.put("occurences", token_occurences);
-
-        if (token.getId() == null) {
-            collection.insert(query);
-            token.setId(query.get("_id").toString());
-        } else {
-            query.put("_id", token.getId());
-            collection.save(query);
-        }
+System.out.println(query);
+        collection.save(query);
+        token.setId(token.getName());
     }
 
     /**
