@@ -344,7 +344,7 @@ public class DatabaseMongo extends Database {
             token_occurences.put(cat_occurences.getKey(), cat_occurences.getValue());
         }
         query.put("occurences", token_occurences);
-System.out.println(query);
+
         collection.save(query);
         token.setId(token.getName());
     }
