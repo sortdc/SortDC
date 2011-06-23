@@ -56,8 +56,7 @@ public class DocumentsResource {
 
                 Map<String, CategoryDTO> categories_dto = new HashMap<String, CategoryDTO>();
                 for (Document document : documents) {
-                    DocumentDTO document_dto = new DocumentDTO();
-                    document_dto.id = document.getId();
+                    DocumentDTO document_dto = new DocumentDTO(classifier_id, document.getId());
                     String category_id = document.getCategoryId();
                     CategoryDTO category_dto;
                     if (!categories_dto.containsKey(category_id)) {
@@ -74,8 +73,7 @@ public class DocumentsResource {
                 documents_dto = new DocumentsDTO(classifier_id, this.category.getId());
 
                 for (Document document : documents) {
-                    DocumentDTO document_dto = new DocumentDTO();
-                    document_dto.id = document.getId();
+                    DocumentDTO document_dto = new DocumentDTO(classifier_id, document.getId());
                     documents_dto.add(document_dto);
                 }
             }
