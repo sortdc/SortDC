@@ -52,22 +52,7 @@ public class DatabaseMongo extends Database {
      * @throws Exception
      */
     private void init() throws Exception {
-        this.addUniqueIndex("documents", "category_id");
-    }
-
-    /**
-     * Creates a unique index on a field
-     *
-     * @param collection
-     * @param field
-     * @throws Exception
-     */
-    private void addUniqueIndex(String collection, String field) throws Exception {
-        DBObject obj = new BasicDBObject();
-        obj.put(field, 1);
-        DBObject options = new BasicDBObject();
-        options.put("unique", true);
-        db.getCollection(collection).ensureIndex(obj, options);
+        db.getCollection("documents").ensureIndex(new BasicDBObject("category_id", 1));
     }
 
     /**
